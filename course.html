@@ -139,17 +139,17 @@
             courseId = urlParams.get('course');
             
             if (courseId) {
-                loadCourseDetails(courseId);
+                loadCourseDetailsFromApp(courseId);
             } else {
                 // Redirect to home if no course ID provided
                 window.location.href = 'index.html';
             }
         });
         
-        // Load course details from JSON (updated to handle nested topics structure)
-        function loadCourseDetails(courseId) {
+        // Load course details using the function from app.js
+        function loadCourseDetailsFromApp(courseId) {
             // Use the updated loadCourseDetails function from app.js
-            loadCourseDetails(courseId)
+            window.loadCourseDetails(courseId)
                 .then(courseData => {
                     currentCourseData = courseData;
                     displayCourseDetails(courseData);
