@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flight Crash Map – Filters & Analytics</title>
-    <link rel="stylesheet" href="web\style.css" />
+    <link rel="stylesheet" href="web/style.css" />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -35,6 +35,26 @@
       <label>Min Fatalities</label>
       <input type="number" id="fatalFilter" placeholder="≥ fatalities" />
 
+      <!-- Weather Filters Section -->
+      <hr />
+      <h3>Weather Filters</h3>
+      <label>Precipitation</label>
+      <select id="precipitationFilter">
+        <option value="all">Any</option>
+        <option value="rain">Rain</option>
+        <option value="snow">Snow</option>
+        <option value="clear">Clear</option>
+      </select>
+
+      <label>Wind Speed (m/s)</label>
+      <div class="row">
+        <input type="number" id="windMin" placeholder="Min" />
+        <input type="number" id="windMax" placeholder="Max" />
+      </div>
+
+      <label>Visibility (km)</label>
+      <input type="number" id="visibilityFilter" placeholder="Max visibility" />
+
       <button id="applyFilter">Apply Filters</button>
 
       <hr />
@@ -53,6 +73,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="src\script.js"></script>
+    <script src="src/script.js"></script>
   </body>
 </html>

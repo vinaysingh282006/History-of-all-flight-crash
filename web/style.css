@@ -43,3 +43,22 @@ button:hover {
   display: flex;
   gap: 5px;
 }
+
+/* Style for weather information in popups */
+.weather-info {
+  margin-top: 10px;
+  padding: 8px;
+  background-color: #f0f8ff;
+  border-left: 3px solid #007bff;
+  border-radius: 3px;
+}
+
+.weather-info h4 {
+  margin: 0 0 5px 0;
+  color: #007bff;
+}
+
+.weather-info p {
+  margin: 2px 0;
+  font-size: 14px;
+}
