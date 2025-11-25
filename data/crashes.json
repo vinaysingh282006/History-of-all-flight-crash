@@ -25,5 +25,158 @@
     "Country": "UK",
     "Latitude": 51.5072,
     "Longitude": -0.1276
+  },
+  {
+    "Location": "Mumbai, India",
+    "Year": 2015,
+    "Type": "Commercial",
+    "Fatalities": 78,
+    "Country": "India",
+    "Latitude": 19.0760,
+    "Longitude": 72.8777
+  },
+  {
+    "Location": "Bangalore, India",
+    "Year": 2005,
+    "Type": "Private",
+    "Fatalities": 5,
+    "Country": "India",
+    "Latitude": 12.9716,
+    "Longitude": 77.5946
+  },
+  {
+    "Location": "Chennai, India",
+    "Year": 1999,
+    "Type": "Military",
+    "Fatalities": 23,
+    "Country": "India",
+    "Latitude": 13.0827,
+    "Longitude": 80.2707
+  },
+  {
+    "Location": "Kolkata, India",
+    "Year": 2012,
+    "Type": "Commercial",
+    "Fatalities": 67,
+    "Country": "India",
+    "Latitude": 22.5726,
+    "Longitude": 88.3639
+  },
+  {
+    "Location": "Hyderabad, India",
+    "Year": 2008,
+    "Type": "Cargo",
+    "Fatalities": 2,
+    "Country": "India",
+    "Latitude": 17.3850,
+    "Longitude": 78.4867
+  },
+  {
+    "Location": "New York, USA",
+    "Year": 2001,
+    "Type": "Commercial",
+    "Fatalities": 2750,
+    "Country": "USA",
+    "Latitude": 40.7128,
+    "Longitude": -74.0060
+  },
+  {
+    "Location": "Chicago, USA",
+    "Year": 1989,
+    "Type": "Commercial",
+    "Fatalities": 142,
+    "Country": "USA",
+    "Latitude": 41.8781,
+    "Longitude": -87.6298
+  },
+  {
+    "Location": "San Francisco, USA",
+    "Year": 2013,
+    "Type": "Commercial",
+    "Fatalities": 3,
+    "Country": "USA",
+    "Latitude": 37.7749,
+    "Longitude": -122.4194
+  },
+  {
+    "Location": "Washington D.C., USA",
+    "Year": 2001,
+    "Type": "Commercial",
+    "Fatalities": 184,
+    "Country": "USA",
+    "Latitude": 38.9072,
+    "Longitude": -77.0369
+  },
+  {
+    "Location": "Boston, USA",
+    "Year": 1979,
+    "Type": "Commercial",
+    "Fatalities": 9,
+    "Country": "USA",
+    "Latitude": 42.3601,
+    "Longitude": -71.0589
+  },
+  {
+    "Location": "Miami, USA",
+    "Year": 1986,
+    "Type": "Private",
+    "Fatalities": 73,
+    "Country": "USA",
+    "Latitude": 25.7617,
+    "Longitude": -80.1918
+  },
+  {
+    "Location": "Seattle, USA",
+    "Year": 2001,
+    "Type": "Commercial",
+    "Fatalities": 246,
+    "Country": "USA",
+    "Latitude": 47.6062,
+    "Longitude": -122.3321
+  },
+  {
+    "Location": "Paris, France",
+    "Year": 2000,
+    "Type": "Commercial",
+    "Fatalities": 153,
+    "Country": "France",
+    "Latitude": 48.8566,
+    "Longitude": 2.3522
+  },
+  {
+    "Location": "Berlin, Germany",
+    "Year": 1988,
+    "Type": "Commercial",
+    "Fatalities": 7,
+    "Country": "Germany",
+    "Latitude": 52.5200,
+    "Longitude": 13.4050
+  },
+  {
+    "Location": "Tokyo, Japan",
+    "Year": 1985,
+    "Type": "Commercial",
+    "Fatalities": 520,
+    "Country": "Japan",
+    "Latitude": 35.6762,
+    "Longitude": 139.6503
+  },
+  {
+    "Location": "Sydney, Australia",
+    "Year": 1999,
+    "Type": "Commercial",
+    "Fatalities": 25,
+    "Country": "Australia",
+    "Latitude": -33.8688,
+    "Longitude": 151.2093
+  },
+  {
+    "Location": "Toronto, Canada",
+    "Year": 1998,
+    "Type": "Commercial",
+    "Fatalities": 12,
+    "Country": "Canada",
+    "Latitude": 43.6532,
+    "Longitude": -79.3832
   }
 ]

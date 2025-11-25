@@ -11,6 +11,7 @@ body {
   padding: 15px;
   overflow-y: auto;
   height: 100vh;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
 }
 
 #map {
@@ -23,9 +24,10 @@ select,
 button {
   width: 100%;
   margin-bottom: 10px;
-  padding: 6px;
+  padding: 8px 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  font-size: 14px;
 }
 
 button {
@@ -33,13 +35,70 @@ button {
   color: #fff;
   border: none;
   cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
 }
 
 button:hover {
   background-color: #0056b3;
 }
 
+#resetFilter {
+  background-color: #6c757d;
+}
+
+#resetFilter:hover {
+  background-color: #545b62;
+}
+
 .row {
   display: flex;
   gap: 5px;
+}
+
+.row input {
+  width: calc(50% - 2.5px);
+}
+
+h2 {
+  color: #333;
+  margin-top: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+h3 {
+  color: #333;
+  margin-top: 20px;
+}
+
+label {
+  font-weight: 600;
+  margin-top: 10px;
+  display: block;
+  color: #555;
+}
+
+hr {
+  margin: 20px 0;
+  border: 0;
+  border-top: 1px solid #eee;
+}
+
+#stats p {
+  margin: 8px 0;
+  padding: 5px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+#stats span {
+  font-weight: 600;
+  color: #007bff;
+}
+
+canvas {
+  margin-top: 15px;
+  max-width: 100%;
+  height: auto;
 }
