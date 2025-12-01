@@ -1,28 +1,71 @@
-name: Bug report
-description: Create a report to help us improve
-type: Bug
-labels: bug
+name: "🐛 Bug Report"
+description: Report issues with flight crash data or website
+labels: ["bug", "triage"]
 body:
-  - type: textarea
+  - type: markdown
     attributes:
-      label: Describe the bug
-      description: Describe the bug.
-      placeholder: >
-        A clear and concise description of what the bug is.
+      value: |
+        ## Flight Crash Data Bug Report
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: "📝 Bug Summary"
+      description: "What is wrong with the data/display?"
+      placeholder: "Flight AA123 crash date shows 2025 instead of 1995"
     validations:
       required: true
+
   - type: textarea
+    id: steps
     attributes:
-      label: To Reproduce
-      placeholder: >
-        Steps to reproduce the behavior:
+      label: "🔄 Steps to Reproduce"
+      description: "How to see the bug?"
+      placeholder: |
+        1. Go to flight search
+        2. Search "AA123"
+        3. Click on crash details
+        4. Date shows incorrect year
+    validations:
+      required: true
+
   - type: textarea
+    id: expected
     attributes:
-      label: Expected behavior
-      placeholder: >
-        A clear and concise description of what you expected to happen.
+      label: "✅ Expected"
+      description: "What should show?"
+      placeholder: "Date: 15-Mar-1995"
+
   - type: textarea
+    id: actual
     attributes:
-      label: Additional context
-      placeholder: >
-        Add any other context about the problem here.
+      label: "❌ Actual"
+      description: "What shows now?"
+      placeholder: "Date: 15-Mar-2025"
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: "📍 Affected Area"
+      options:
+        - Website/UI
+        - Flight data accuracy
+        - Search/filter
+        - Maps/charts
+        - Export/download
+        - Other
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "📸 Screenshots/Links"
+      description: "Share screenshot or flight ID"
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: "🔥 Severity"
+      options:
+        - P0 - Critical data error
+        - P1 - Major functionality broken
+        - P2 - Minor data/UI issue
