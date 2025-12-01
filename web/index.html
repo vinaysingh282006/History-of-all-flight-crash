@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flight Crash Map – Filters & Analytics</title>
-    <link rel="stylesheet" href="web/style.css" />
+    <link rel="stylesheet" href="style.css" />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -84,6 +84,13 @@
       <div id="timeline-container">
         <canvas id="timeline-chart" width="200" height="150"></canvas>
       </div>
+      
+      <hr />
+      
+      <h3>Operator Analysis</h3>
+      <div id="operator-container">
+        <canvas id="operator-chart" width="200" height="200"></canvas>
+      </div>
     </div>
 
     <div id="map"></div>
@@ -92,6 +99,6 @@
     <!-- Add Leaflet.markercluster JS -->
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="src/script.js"></script>
+    <script src="../src/script.js"></script>
   </body>
 </html>

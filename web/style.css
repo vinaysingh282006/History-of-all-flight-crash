@@ -102,3 +102,7 @@ canvas {
   max-width: 100%;
   height: auto;
 }
+
+#operator-container {
+  margin-top: 15px;
+}

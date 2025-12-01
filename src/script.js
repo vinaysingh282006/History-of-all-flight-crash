@@ -4,6 +4,10 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors",
 }).addTo(map);
 
+// Weather API configuration - using OpenWeatherMap as an example
+const WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather";
+const WEATHER_API_KEY = "YOUR_API_KEY_HERE"; // Replace with actual API key
+
 // Create a marker cluster group
 let markers = L.markerClusterGroup({
   spiderfyOnMaxZoom: true,
@@ -19,6 +23,7 @@ const WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather";
 let crashData = [];
 let chart;
 let timelineChart;
+let operatorChart; // New chart for operator analysis
 
 async function loadData() {
   const res = await fetch("data/crashes.json");
@@ -140,6 +145,139 @@ function updateAnalytics(data) {
       scales: { y: { beginAtZero: true } },
       responsive: true,
       maintainAspectRatio: false
+    },
+  });
+  
+  // New Operator Analysis Chart
+  updateOperatorAnalysis(data);
+}
+
+// New function for operator analysis
+function updateOperatorAnalysis(data) {
+  // Group crashes by operator (using Type as proxy since we don't have Operator field)
+  const operatorGrouped = {};
+  data.forEach((d) => {
+    // Using Type as operator since Operator field isn't in our dataset
+    const operator = d.Type || "Unknown";
+    if (!operatorGrouped[operator]) {
+      operatorGrouped[operator] = { crashes: 0, fatalities: 0 };
+    }
+    operatorGrouped[operator].crashes += 1;
+    operatorGrouped[operator].fatalities += d.Fatalities || 0;
+  });
+
+  // Convert to array and sort by crash count
+  const operatorArray = Object.entries(operatorGrouped)
+    .map(([name, stats]) => ({ name, ...stats }))
+    .sort((a, b) => b.crashes - a.crashes);
+
+  // Take top 8 operators
+  const topOperators = operatorArray.slice(0, 8);
+  const operatorLabels = topOperators.map(op => op.name);
+  const crashCounts = topOperators.map(op => op.crashes);
+  const fatalityCounts = topOperators.map(op => op.fatalities);
+
+  // Destroy existing chart if it exists
+  if (operatorChart) operatorChart.destroy();
+
+  // Create operator analysis chart
+  operatorChart = new Chart(document.getElementById("operator-chart"), {
+    type: "bar",
+    data: {
+      labels: operatorLabels,
+      datasets: [
+        {
+          label: "Crashes",
+          data: crashCounts,
+          backgroundColor: "rgba(54, 162, 235, 0.7)",
+          borderColor: "rgba(54, 162, 235, 1)",
+          borderWidth: 1
+        },
+        {
+          label: "Fatalities",
+          data: fatalityCounts,
+          backgroundColor: "rgba(255, 99, 132, 0.7)",
+          borderColor: "rgba(255, 99, 132, 1)",
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Count"
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: "Aircraft Type"
+          }
+        }
+      },
+      plugins: {
+        title: {
+          display: true,
+          text: 'Top Aircraft Types by Crashes and Fatalities'
+        }
+      }
+    }
+  });
+}
+
+// Timeline chart function
+function updateTimeline(data) {
+  // Group crashes by year for timeline
+  const yearlyData = {};
+  data.forEach((d) => {
+    yearlyData[d.Year] = (yearlyData[d.Year] || 0) + 1;
+  });
+
+  const years = Object.keys(yearlyData).sort();
+  const counts = years.map((y) => yearlyData[y]);
+
+  // Destroy existing chart if it exists
+  if (timelineChart) timelineChart.destroy();
+
+  // Create timeline chart
+  timelineChart = new Chart(document.getElementById("timeline-chart"), {
+    type: "line",
+    data: {
+      labels: years,
+      datasets: [
+        {
+          label: "Crashes per Year",
+          data: counts,
+          borderColor: "rgba(54, 162, 235, 1)",
+          backgroundColor: "rgba(54, 162, 235, 0.2)",
+          fill: true,
+          tension: 0.1
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Number of Crashes"
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: "Year"
+          }
+        }
+      }
     },
   });
 }
