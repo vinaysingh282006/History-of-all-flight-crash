@@ -15,10 +15,6 @@ let markers = L.markerClusterGroup({
   maxClusterRadius: 80, // Maximum radius that a cluster will cover from the central marker
 });
 
-// Weather API configuration (using OpenWeatherMap as an example)
-const WEATHER_API_KEY = "YOUR_API_KEY_HERE"; // This should be replaced with an actual API key
-const WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather";
-
 let crashData = [];
 let chart;
 let timelineChart;
@@ -30,12 +26,24 @@ let operatorChart; // New chart for operator analysis
  */
 async function loadData() {
   console.log("🔍 Loading crash data...");
-  const res = await fetch("data/crashes.json");
-  crashData = await res.json();
-  console.log(`✅ Loaded ${crashData.length} crash records`);
-  renderMarkers(crashData);
-  updateAnalytics(crashData);
-  updateTimeline(crashData);
+  try {
+    const res = await fetch("data/crashes.json");
+    if (!res.ok) {
+      throw new Error(`Failed to load crash data: ${res.status} ${res.statusText}`);
+    }
+    crashData = await res.json();
+    console.log(`✅ Loaded ${crashData.length} crash records`);
+    renderMarkers(crashData);
+    updateAnalytics(crashData);
+    updateTimeline(crashData);
+  } catch (error) {
+    console.error("❌ Error loading crash data:", error);
+    // Display error to user
+    const statsContainer = document.getElementById("stats");
+    if (statsContainer) {
+      statsContainer.innerHTML = `<p style="color: red;">Error loading crash data: ${error.message}</p>`;
+    }
+  }
 }
 
 /**
@@ -99,12 +107,23 @@ function renderMarkers(data) {
  */
 async function fetchWeatherData(lat, lon, year, locationId) {
   try {
+    // Check if API key is configured
+    if (!WEATHER_API_KEY || WEATHER_API_KEY === "YOUR_API_KEY_HERE") {
+      throw new Error("Weather API key not configured. Please set a valid API key.");
+    }
+    
     // For demo purposes, we're using current weather API
     // In a real implementation, you would use a historical weather API
     const response = await fetch(`${WEATHER_API_URL}?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric`);
     
     if (!response.ok) {
-      throw new Error('Weather data not available');
+      if (response.status === 401) {
+        throw new Error("Invalid API key. Please check your OpenWeatherMap API key.");
+      } else if (response.status === 429) {
+        throw new Error("API rate limit exceeded. Please try again later.");
+      } else {
+        throw new Error(`Weather service error: ${response.status} ${response.statusText}`);
+      }
     }
     
     const weatherData = await response.json();
@@ -116,14 +135,19 @@ async function fetchWeatherData(lat, lon, year, locationId) {
         <b>Weather Conditions:</b><br>
         Temperature: ${weatherData.main.temp}°C<br>
         Humidity: ${weatherData.main.humidity}%<br>
-        Wind Speed: ${weatherData.wind.speed} m/s<br>
-        Conditions: ${weatherData.weather[0].description}
+        Wind Speed: ${weatherData.wind?.speed || 'N/A'} m/s<br>
+        Conditions: ${weatherData.weather?.[0]?.description || 'Unknown'}
       `;
     }
   } catch (error) {
+    console.error("Weather data fetch error:", error);
     const weatherInfoDiv = document.getElementById(`weather-info-${year}-${locationId}`);
     if (weatherInfoDiv) {
-      weatherInfoDiv.innerHTML = "Weather data unavailable";
+      let errorMessage = "Weather data unavailable";
+      if (error.message) {
+        errorMessage += `: ${error.message}`;
+      }
+      weatherInfoDiv.innerHTML = `<span style="color: red;">${errorMessage}</span>`;
     }
   }
 }
@@ -263,32 +287,33 @@ function updateOperatorAnalysis(data) {
 
 // Timeline chart function
 function updateTimeline(data) {
-  // Group data by year
+  // Group crashes by year for timeline
   const yearlyData = {};
   data.forEach((d) => {
     yearlyData[d.Year] = (yearlyData[d.Year] || 0) + 1;
   });
 
   const years = Object.keys(yearlyData).sort();
-  const counts = years.map((year) => yearlyData[year]);
+  const counts = years.map((y) => yearlyData[y]);
 
-  const ctx = document.getElementById("timeline-chart").getContext("2d");
-  
+  // Destroy existing chart if it exists
   if (timelineChart) timelineChart.destroy();
-  
-  timelineChart = new Chart(ctx, {
+
+  // Create timeline chart
+  timelineChart = new Chart(document.getElementById("timeline-chart"), {
     type: "line",
     data: {
       labels: years,
-      datasets: [{
-        label: "Crashes per Year",
-        data: counts,
-        borderColor: "rgba(54, 162, 235, 1)",
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
-        borderWidth: 2,
-        fill: true,
-        tension: 0.4
-      }]
+      datasets: [
+        {
+          label: "Crashes per Year",
+          data: counts,
+          borderColor: "rgba(54, 162, 235, 1)",
+          backgroundColor: "rgba(54, 162, 235, 0.2)",
+          fill: true,
+          tension: 0.1
+        },
+      ],
     },
     options: {
       responsive: true,
@@ -308,131 +333,11 @@ function updateTimeline(data) {
           }
         }
       }
-    }
+    },
   });
 }
 
-/**
- * 🏆 Update leaderboard with crash statistics
- * @param {Array} data - Array of crash data objects
- */
-function updateLeaderboard(data) {
-  // Countries leaderboard
-  const countriesData = {};
-  data.forEach(crash => {
-    const country = crash.Country || 'Unknown';
-    if (!countriesData[country]) {
-      countriesData[country] = { crashes: 0, fatalities: 0 };
-    }
-    countriesData[country].crashes++;
-    countriesData[country].fatalities += crash.Fatalities || 0;
-  });
-
-  // Convert to array and sort by crashes
-  const countriesArray = Object.entries(countriesData)
-    .map(([name, stats]) => ({ name, ...stats }))
-    .sort((a, b) => b.crashes - a.crashes);
-
-  // Populate countries leaderboard table
-  const countriesTable = document.getElementById('countries-leaderboard').getElementsByTagName('tbody')[0];
-  countriesTable.innerHTML = '';
-  countriesArray.slice(0, 10).forEach((country, index) => {
-    const row = countriesTable.insertRow();
-    row.insertCell(0).textContent = index + 1;
-    row.insertCell(1).textContent = country.name;
-    row.insertCell(2).textContent = country.crashes;
-    row.insertCell(3).textContent = country.fatalities;
-    
-    // Add ranking classes for special styling
-    if (index < 3) {
-      row.classList.add(`rank-${index + 1}`);
-    }
-  });
-
-  // Aircraft types leaderboard
-  const typesData = {};
-  data.forEach(crash => {
-    const type = crash.Type || 'Unknown';
-    if (!typesData[type]) {
-      typesData[type] = { crashes: 0, fatalities: 0 };
-    }
-    typesData[type].crashes++;
-    typesData[type].fatalities += crash.Fatalities || 0;
-  });
-
-  // Convert to array and sort by crashes
-  const typesArray = Object.entries(typesData)
-    .map(([name, stats]) => ({ name, ...stats }))
-    .sort((a, b) => b.crashes - a.crashes);
-
-  // Populate types leaderboard table
-  const typesTable = document.getElementById('types-leaderboard').getElementsByTagName('tbody')[0];
-  typesTable.innerHTML = '';
-  typesArray.slice(0, 10).forEach((type, index) => {
-    const row = typesTable.insertRow();
-    row.insertCell(0).textContent = index + 1;
-    row.insertCell(1).textContent = type.name;
-    row.insertCell(2).textContent = type.crashes;
-    row.insertCell(3).textContent = type.fatalities;
-    
-    // Add ranking classes for special styling
-    if (index < 3) {
-      row.classList.add(`rank-${index + 1}`);
-    }
-  });
-
-  // Highest fatalities leaderboard
-  const fatalitiesArray = [...data]
-    .filter(crash => crash.Fatalities > 0)
-    .sort((a, b) => b.Fatalities - a.Fatalities);
-
-  // Populate fatalities leaderboard table
-  const fatalitiesTable = document.getElementById('fatalities-leaderboard').getElementsByTagName('tbody')[0];
-  fatalitiesTable.innerHTML = '';
-  fatalitiesArray.slice(0, 10).forEach((crash, index) => {
-    const row = fatalitiesTable.insertRow();
-    row.insertCell(0).textContent = index + 1;
-    row.insertCell(1).textContent = crash.Location;
-    row.insertCell(2).textContent = crash.Year;
-    row.insertCell(3).textContent = crash.Type;
-    row.insertCell(4).textContent = crash.Fatalities;
-    
-    // Add ranking classes for special styling
-    if (index < 3) {
-      row.classList.add(`rank-${index + 1}`);
-    }
-  });
-
-  // Decade analysis
-  const decadesData = {};
-  data.forEach(crash => {
-    const decade = Math.floor(crash.Year / 10) * 10;
-    if (!decadesData[decade]) {
-      decadesData[decade] = { crashes: 0, fatalities: 0 };
-    }
-    decadesData[decade].crashes++;
-    decadesData[decade].fatalities += crash.Fatalities || 0;
-  });
-
-  // Convert to array and sort by decade
-  const decadesArray = Object.entries(decadesData)
-    .map(([decade, stats]) => ({ decade: parseInt(decade), ...stats }))
-    .sort((a, b) => a.decade - b.decade);
-
-  // Populate decades leaderboard table
-  const decadesTable = document.getElementById('decades-leaderboard').getElementsByTagName('tbody')[0];
-  decadesTable.innerHTML = '';
-  decadesArray.forEach(decade => {
-    const row = decadesTable.insertRow();
-    row.insertCell(0).textContent = `${decade.decade}s`;
-    row.insertCell(1).textContent = decade.crashes;
-    row.insertCell(2).textContent = decade.fatalities;
-  });
-}
-
-/**
- * Apply filter function
- */
+// Apply filter function
 function applyFilters() {
   // Get filter values from UI elements
   const minY = +document.getElementById("yearMin").value || 0;
