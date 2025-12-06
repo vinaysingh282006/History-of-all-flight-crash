@@ -19,10 +19,6 @@ let markers = L.markerClusterGroup({
   maxClusterRadius: 80, // Maximum radius that a cluster will cover from the central marker
 });
 
-// Weather API configuration (using OpenWeatherMap as an example)
-const WEATHER_API_KEY = "YOUR_API_KEY"; // This should be replaced with an actual API key
-const WEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather";
-
 let crashData = [];
 let chart;
 let timelineChart;
@@ -34,12 +30,24 @@ let operatorChart; // New chart for operator analysis
  */
 async function loadData() {
   console.log("🔍 Loading crash data...");
-  const res = await fetch("data/crashes.json");
-  crashData = await res.json();
-  console.log(`✅ Loaded ${crashData.length} crash records`);
-  renderMarkers(crashData);
-  updateAnalytics(crashData);
-  updateTimeline(crashData);
+  try {
+    const res = await fetch("data/crashes.json");
+    if (!res.ok) {
+      throw new Error(`Failed to load crash data: ${res.status} ${res.statusText}`);
+    }
+    crashData = await res.json();
+    console.log(`✅ Loaded ${crashData.length} crash records`);
+    renderMarkers(crashData);
+    updateAnalytics(crashData);
+    updateTimeline(crashData);
+  } catch (error) {
+    console.error("❌ Error loading crash data:", error);
+    // Display error to user
+    const statsContainer = document.getElementById("stats");
+    if (statsContainer) {
+      statsContainer.innerHTML = `<p style="color: red;">Error loading crash data: ${error.message}</p>`;
+    }
+  }
 }
 
 /**
@@ -103,12 +111,23 @@ function renderMarkers(data) {
  */
 async function fetchWeatherData(lat, lon, year, locationId) {
   try {
+    // Check if API key is configured
+    if (!WEATHER_API_KEY || WEATHER_API_KEY === "YOUR_API_KEY_HERE") {
+      throw new Error("Weather API key not configured. Please set a valid API key.");
+    }
+    
     // For demo purposes, we're using current weather API
     // In a real implementation, you would use a historical weather API
     const response = await fetch(`${WEATHER_API_URL}?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric`);
     
     if (!response.ok) {
-      throw new Error('Weather data not available');
+      if (response.status === 401) {
+        throw new Error("Invalid API key. Please check your OpenWeatherMap API key.");
+      } else if (response.status === 429) {
+        throw new Error("API rate limit exceeded. Please try again later.");
+      } else {
+        throw new Error(`Weather service error: ${response.status} ${response.statusText}`);
+      }
     }
     
     const weatherData = await response.json();
@@ -120,14 +139,19 @@ async function fetchWeatherData(lat, lon, year, locationId) {
         <b>Weather Conditions:</b><br>
         Temperature: ${weatherData.main.temp}°C<br>
         Humidity: ${weatherData.main.humidity}%<br>
-        Wind Speed: ${weatherData.wind.speed} m/s<br>
-        Conditions: ${weatherData.weather[0].description}
+        Wind Speed: ${weatherData.wind?.speed || 'N/A'} m/s<br>
+        Conditions: ${weatherData.weather?.[0]?.description || 'Unknown'}
       `;
     }
   } catch (error) {
+    console.error("Weather data fetch error:", error);
     const weatherInfoDiv = document.getElementById(`weather-info-${year}-${locationId}`);
     if (weatherInfoDiv) {
-      weatherInfoDiv.innerHTML = "Weather data unavailable";
+      let errorMessage = "Weather data unavailable";
+      if (error.message) {
+        errorMessage += `: ${error.message}`;
+      }
+      weatherInfoDiv.innerHTML = `<span style="color: red;">${errorMessage}</span>`;
     }
   }
 }
@@ -311,57 +335,6 @@ function updateTimeline(data) {
         }
       }
     },
-  });
-}
-
-// Timeline chart function
-function updateTimeline(data) {
-  // Group data by year
-  const yearlyData = {};
-  data.forEach((d) => {
-    yearlyData[d.Year] = (yearlyData[d.Year] || 0) + 1;
-  });
-
-  const years = Object.keys(yearlyData).sort();
-  const counts = years.map((year) => yearlyData[year]);
-
-  const ctx = document.getElementById("timeline-chart").getContext("2d");
-  
-  if (timelineChart) timelineChart.destroy();
-  
-  timelineChart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: years,
-      datasets: [{
-        label: "Crashes per Year",
-        data: counts,
-        borderColor: "rgba(54, 162, 235, 1)",
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
-        borderWidth: 2,
-        fill: true,
-        tension: 0.4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: "Number of Crashes"
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: "Year"
-          }
-        }
-      }
-    }
   });
 }
 
