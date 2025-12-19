@@ -200,7 +200,7 @@ History-of-all-flight-crash-map/
 
 ## 🤝 Contribution Guidelines
 
-We welcome contributions!
+We welcome contributions!Please review our **[Code of Conduct](CODE_OF_CONDUCT.md)** before engaging in the community.
 
 1. **Fork** this repo
 2. **Create a branch**
