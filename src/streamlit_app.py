@@ -883,6 +883,60 @@ def create_cost_analysis(df, selected_year=None):
     
     return cost_fig, risk_fig
 
+def create_survival_analysis_chart(df, selected_years=None):
+    """Survival rate analysis with enhanced tooltips"""
+    filtered_df = df
+    if selected_years:
+        filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    yearly_stats = filtered_df.groupby('year').agg({
+        'Aboard': 'sum',
+        'Fatalities': 'sum',
+        'Date': 'count'
+    }).reset_index()
+    
+    yearly_stats['Survivors'] = yearly_stats['Aboard'] - yearly_stats['Fatalities']
+    yearly_stats['Survival_Rate'] = (yearly_stats['Survivors'] / yearly_stats['Aboard'] * 100).fillna(0)
+    
+    # Enhanced hover text
+    hover_texts = [
+        f"<b>📅 Year:</b> {int(row['year'])}<br>"
+        f"<b>🛡️ Survival Rate:</b> {row['Survival_Rate']:.1f}%<br>"
+        f"<b>👥 Total Aboard:</b> {int(row['Aboard']):,}<br>"
+        f"<b>🙏 Survivors:</b> {int(row['Survivors']):,}<br>"
+        f"<b>💀 Fatalities:</b> {int(row['Fatalities']):,}"
+        for _, row in yearly_stats.iterrows()
+    ]
+    
+    fig = go.Figure()
+    
+    # Survival Rate Line
+    fig.add_trace(go.Scatter(
+        x=yearly_stats['year'], 
+        y=yearly_stats['Survival_Rate'],
+        mode='lines+markers',
+        name='Survival Rate (%)',
+        line=dict(color=COLORS['success'], width=4),
+        marker=dict(size=8, color='white', line=dict(width=2, color=COLORS['success'])),
+        hovertext=hover_texts,
+        hovertemplate="%{hovertext}<extra></extra>"
+    ))
+    
+    year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
+    fig.update_layout(
+        title=f"🛡️ Annual Survival Rate Trends{year_text}",
+        xaxis_title="Year",
+        yaxis_title="Survival Rate (%)",
+        yaxis=dict(range=[0, 105]), # 0 to 100%
+        height=600,
+        paper_bgcolor=COLORS['light_bg'],
+        plot_bgcolor='white',
+        font=dict(color=COLORS['text'], size=14),
+        showlegend=True
+    )
+    
+    return fig
+
 def main():
     df = load_data()
     
@@ -919,13 +973,14 @@ def main():
         </div>
         ''', unsafe_allow_html=True)
     
-    # FIVE TABS
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    # SIX TABS
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "🌍 **3D GLOBE**", 
         "🏁 **RACING STICKS**", 
         "🎯 **CRASH REASONS**", 
         "💀 **FATALITY TRENDS**",
-        "💰 **COST BREAKDOWN**"
+        "💰 **COST BREAKDOWN**",
+        "🛡️ **SURVIVORS**"
     ])
     
     # Tab 1: 3D Globe
@@ -1086,6 +1141,47 @@ def main():
                 with col_c:
                     total_cost = len(year_data) * 50 + year_data['Fatalities'].sum() * 1.5
                     st.metric("Est. Cost", f"${total_cost:.0f}M")
+
+    # Tab 6: Survival Rate Analysis
+    with tab6:
+        st.markdown('<h2 class="tab-header">🛡️ Survival Rate Analysis</h2>', unsafe_allow_html=True)
+        
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.markdown("### 📅 Year Range Filter")
+            min_year_surv = int(df['year'].min())
+            max_year_surv = int(df['year'].max())
+            
+            surv_year_range = st.slider(
+                "Select Range:",
+                min_value=min_year_surv,
+                max_value=max_year_surv,
+                value=(min_year_surv, max_year_surv),
+                key="survival_years"
+            )
+            
+            # Key statistics
+            surv_filtered = df[df['year'].between(surv_year_range[0], surv_year_range[1])]
+            total_aboard_s = surv_filtered['Aboard'].sum()
+            total_fatal_s = surv_filtered['Fatalities'].sum()
+            total_survived = total_aboard_s - total_fatal_s
+            avg_rate = (total_survived / total_aboard_s * 100) if total_aboard_s > 0 else 0
+            
+            st.markdown("### 📊 Metrics")
+            st.metric("🛡️ Avg Survival Rate", f"{avg_rate:.1f}%")
+            st.metric("👥 Total Survivors", f"{int(total_survived):,}")
+            
+        with col2:
+            survival_fig = create_survival_analysis_chart(df, surv_year_range)
+            st.plotly_chart(survival_fig, use_container_width=True)
+            
+        st.markdown("""
+        <div class='metric-card' style='padding: 1rem; text-align: left;'>
+            <h4>💡 Insight</h4>
+            <p>This chart tracks the percentage of people aboard who survived crashes over time. 
+            An upward trend indicates improved safety measures, stronger aircraft construction, and better emergency protocols.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
