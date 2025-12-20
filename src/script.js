@@ -53,14 +53,14 @@ async function loadData() {
 function renderMarkers(data) {
   // Clear existing markers from the map
   markers.clearLayers();
-  
+
   // Create markers for each crash with color based on fatality count
   data.forEach((crash) => {
     if (crash.Latitude && crash.Longitude) {
       // Determine marker color based on fatality count
       const fatalityCount = crash.Fatalities || 0;
       let color = "green"; // Default color for low fatalities
-      
+
       if (fatalityCount > 50) {
         color = "red";
       } else if (fatalityCount > 10) {
@@ -68,10 +68,10 @@ function renderMarkers(data) {
       } else if (fatalityCount > 0) {
         color = "yellow";
       }
-      
+
       // Calculate marker size based on fatalities (min 5, max 15)
       const markerSize = Math.max(5, Math.min(15, fatalityCount / 10));
-      
+
       // Create circle marker with visual properties based on fatalities
       const marker = L.circleMarker([crash.Latitude, crash.Longitude], {
         radius: markerSize,
@@ -91,11 +91,11 @@ function renderMarkers(data) {
         <br><br>
         <button onclick="showCrashDetails(${JSON.stringify(crash).replace(/"/g, '&quot;')})">View Details</button>
       `);
-      
+
       markers.addLayer(marker);
     }
   });
-  
+
   // Add the marker cluster group to the map
   map.addLayer(markers);
 }
@@ -113,11 +113,11 @@ async function fetchWeatherData(lat, lon, year, locationId) {
     if (!WEATHER_API_KEY || WEATHER_API_KEY === "YOUR_API_KEY_HERE") {
       throw new Error("Weather API key not configured. Please set a valid API key.");
     }
-    
+
     // For demo purposes, we're using current weather API
     // In a real implementation, you would use a historical weather API
     const response = await fetch(`${WEATHER_API_URL}?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric`);
-    
+
     if (!response.ok) {
       if (response.status === 401) {
         throw new Error("Invalid API key. Please check your OpenWeatherMap API key.");
@@ -127,9 +127,9 @@ async function fetchWeatherData(lat, lon, year, locationId) {
         throw new Error(`Weather service error: ${response.status} ${response.statusText}`);
       }
     }
-    
+
     const weatherData = await response.json();
-    
+
     // Update the popup with weather information
     const weatherInfoDiv = document.getElementById(`weather-info-${year}-${locationId}`);
     if (weatherInfoDiv) {
@@ -181,7 +181,7 @@ function updateAnalytics(data) {
 
   // Destroy existing chart if it exists
   if (chart) chart.destroy();
-  
+
   // Create new bar chart showing crashes per decade
   chart = new Chart(document.getElementById("chart"), {
     type: "bar",
@@ -195,16 +195,16 @@ function updateAnalytics(data) {
         },
       ],
     },
-    options: { 
+    options: {
       scales: { y: { beginAtZero: true } },
       responsive: true,
       maintainAspectRatio: false
     },
   });
-  
+
   // New Operator Analysis Chart
   updateOperatorAnalysis(data);
-  
+
   // Update leaderboard data
   updateLeaderboard(data);
 }
@@ -347,7 +347,7 @@ function applyFilters() {
   const type = document.getElementById("typeFilter").value;
   const region = document.getElementById("regionFilter").value.toLowerCase();
   const minF = +document.getElementById("fatalFilter").value || 0;
-  
+
   // Weather filters (not fully implemented in this demo)
   const precipitation = document.getElementById("precipitationFilter").value;
   const minWind = +document.getElementById("windMin").value || 0;
@@ -362,7 +362,7 @@ function applyFilters() {
       (type === "All" || c.Type === type) &&
       (!region || (c.Country && c.Country.toLowerCase().includes(region))) &&
       (c.Fatalities || 0) >= minF
-      // Weather filters would be applied here in a full implementation
+    // Weather filters would be applied here in a full implementation
   );
 
   // Update visualization with filtered data
@@ -381,13 +381,13 @@ function resetFilters() {
   document.getElementById("typeFilter").value = "All";
   document.getElementById("regionFilter").value = "";
   document.getElementById("fatalFilter").value = "";
-  
+
   // Reset weather filters
   document.getElementById("precipitationFilter").value = "all";
   document.getElementById("windMin").value = "";
   document.getElementById("windMax").value = "";
   document.getElementById("visibilityFilter").value = "";
-  
+
   renderMarkers(crashData);
   updateAnalytics(crashData);
   updateTimeline(crashData);
@@ -494,14 +494,14 @@ function exportChartsAsImage(filename) {
   container.style.gap = '20px';
   container.style.padding = '20px';
   container.style.backgroundColor = 'white';
-  
+
   // Clone and add each chart
   const charts = [
     document.getElementById('chart'),
     document.getElementById('timeline-chart'),
     document.getElementById('operator-chart')
   ];
-  
+
   charts.forEach(chartElement => {
     if (chartElement) {
       const clone = chartElement.cloneNode(true);
@@ -510,20 +510,20 @@ function exportChartsAsImage(filename) {
       container.appendChild(clone);
     }
   });
-  
+
   // Add title
   const title = document.createElement('h2');
   title.textContent = 'Flight Crash Data Analysis';
   title.style.textAlign = 'center';
   container.insertBefore(title, container.firstChild);
-  
+
   // Add timestamp
   const timestamp = document.createElement('p');
   timestamp.textContent = `Exported on: ${new Date().toLocaleString()}`;
   timestamp.style.textAlign = 'center';
   timestamp.style.fontStyle = 'italic';
   container.appendChild(timestamp);
-  
+
   // Render to canvas and download
   html2canvas(container).then(canvas => {
     const link = document.createElement('a');
@@ -537,14 +537,14 @@ function exportChartsAsImage(filename) {
 document.getElementById("applyFilter").addEventListener("click", applyFilters);
 document.getElementById("resetFilter").addEventListener("click", resetFilters);
 // Add event listener for export button
-document.getElementById("exportData").addEventListener("click", function() {
+document.getElementById("exportData").addEventListener("click", function () {
   // Get current filter values
   const minY = +document.getElementById("yearMin").value || 0;
   const maxY = +document.getElementById("yearMax").value || 9999;
   const type = document.getElementById("typeFilter").value;
   const region = document.getElementById("regionFilter").value.toLowerCase();
   const minF = +document.getElementById("fatalFilter").value || 0;
-  
+
   // Filter data based on current filters
   const filteredData = crashData.filter(
     (c) =>
@@ -554,7 +554,7 @@ document.getElementById("exportData").addEventListener("click", function() {
       (!region || (c.Country && c.Country.toLowerCase().includes(region))) &&
       (c.Fatalities || 0) >= minF
   );
-  
+
   // Show export options dialog
   showExportDialog(filteredData);
 });
@@ -576,7 +576,7 @@ function showExportDialog(data) {
   modal.style.justifyContent = 'center';
   modal.style.alignItems = 'center';
   modal.style.zIndex = '1000';
-  
+
   // Create dialog content
   const dialog = document.createElement('div');
   dialog.style.backgroundColor = 'white';
@@ -584,18 +584,18 @@ function showExportDialog(data) {
   dialog.style.borderRadius = '8px';
   dialog.style.width = '400px';
   dialog.style.maxWidth = '90%';
-  
+
   // Add title
   const title = document.createElement('h3');
   title.textContent = 'Export Data';
   title.style.marginTop = '0';
   dialog.appendChild(title);
-  
+
   // Add data info
   const info = document.createElement('p');
   info.textContent = `Exporting ${data.length} crash records`;
   dialog.appendChild(info);
-  
+
   // Add export format options
   const formatLabel = document.createElement('label');
   formatLabel.textContent = 'Select export format:';
@@ -603,20 +603,20 @@ function showExportDialog(data) {
   formatLabel.style.marginBottom = '10px';
   formatLabel.style.fontWeight = 'bold';
   dialog.appendChild(formatLabel);
-  
+
   // Create radio buttons for format selection
   const formats = [
     { id: 'csv', label: 'CSV (Spreadsheet)', checked: true },
     { id: 'json', label: 'JSON (Raw Data)' },
     { id: 'image', label: 'PNG (Charts Image)' }
   ];
-  
+
   let selectedFormat = 'csv';
-  
+
   formats.forEach(format => {
     const container = document.createElement('div');
     container.style.marginBottom = '8px';
-    
+
     const radio = document.createElement('input');
     radio.type = 'radio';
     radio.id = `format-${format.id}`;
@@ -624,21 +624,21 @@ function showExportDialog(data) {
     radio.value = format.id;
     radio.checked = format.checked || false;
     if (format.checked) selectedFormat = format.id;
-    
-    radio.addEventListener('change', function() {
+
+    radio.addEventListener('change', function () {
       selectedFormat = this.value;
     });
-    
+
     const label = document.createElement('label');
     label.htmlFor = `format-${format.id}`;
     label.textContent = format.label;
     label.style.marginLeft = '8px';
-    
+
     container.appendChild(radio);
     container.appendChild(label);
     dialog.appendChild(container);
   });
-  
+
   // Add filename input
   const filenameLabel = document.createElement('label');
   filenameLabel.textContent = 'Filename (without extension):';
@@ -646,7 +646,7 @@ function showExportDialog(data) {
   filenameLabel.style.marginTop = '15px';
   filenameLabel.style.fontWeight = 'bold';
   dialog.appendChild(filenameLabel);
-  
+
   const filenameInput = document.createElement('input');
   filenameInput.type = 'text';
   filenameInput.id = 'export-filename';
@@ -656,40 +656,40 @@ function showExportDialog(data) {
   filenameInput.style.marginTop = '5px';
   filenameInput.style.marginBottom = '15px';
   dialog.appendChild(filenameInput);
-  
+
   // Add buttons
   const buttonContainer = document.createElement('div');
   buttonContainer.style.display = 'flex';
   buttonContainer.style.gap = '10px';
   buttonContainer.style.justifyContent = 'flex-end';
-  
+
   const exportButton = document.createElement('button');
   exportButton.textContent = 'Export';
   exportButton.style.backgroundColor = '#28a745';
-  exportButton.addEventListener('click', function() {
+  exportButton.addEventListener('click', function () {
     const filename = filenameInput.value || 'flight_crash_data';
     exportData(data, selectedFormat, filename);
     document.body.removeChild(modal);
   });
-  
+
   const cancelButton = document.createElement('button');
   cancelButton.textContent = 'Cancel';
   cancelButton.style.backgroundColor = '#6c757d';
-  cancelButton.addEventListener('click', function() {
+  cancelButton.addEventListener('click', function () {
     document.body.removeChild(modal);
   });
-  
+
   buttonContainer.appendChild(cancelButton);
   buttonContainer.appendChild(exportButton);
   dialog.appendChild(buttonContainer);
-  
+
   // Close modal when clicking outside
-  modal.addEventListener('click', function(event) {
+  modal.addEventListener('click', function (event) {
     if (event.target === modal) {
       document.body.removeChild(modal);
     }
   });
-  
+
   // Add dialog to modal and modal to body
   modal.appendChild(dialog);
   document.body.appendChild(modal);
@@ -701,145 +701,13 @@ function futureEnhancement() {
   // Will implement advanced filtering options
 }
 
-/**
- * 📤 Export data to various formats
- * @param {Array} data - Array of crash data objects to export
- * @param {string} format - Export format ('csv', 'json', 'image')
- * @param {string} filename - Name of the file to export
- */
-function exportData(data = crashData, format = 'csv', filename = 'flight_crash_data') {
-  switch (format) {
-    case 'csv':
-      exportToCSV(data, filename);
-      break;
-    case 'json':
-      exportToJSON(data, filename);
-      break;
-    case 'image':
-      exportChartsAsImage(filename);
-      break;
-    default:
-      console.error('Unsupported export format:', format);
-  }
-}
 
-/**
- * Export data to CSV format
- * @param {Array} data - Array of crash data objects to export
- * @param {string} filename - Name of the file to export
- */
-function exportToCSV(data, filename) {
-  if (!data || data.length === 0) {
-    alert('No data to export');
-    return;
-  }
-
-  // Create CSV header
-  const headers = ['Location', 'Year', 'Type', 'Fatalities', 'Country', 'Latitude', 'Longitude'];
-  let csvContent = headers.join(',') + '\n';
-
-  // Add data rows
-  data.forEach(item => {
-    const row = [
-      `"${item.Location || ''}"`,
-      item.Year || '',
-      `"${item.Type || ''}"`,
-      item.Fatalities || 0,
-      `"${item.Country || ''}"`,
-      item.Latitude || '',
-      item.Longitude || ''
-    ];
-    csvContent += row.join(',') + '\n';
-  });
-
-  // Create download link
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', `${filename}.csv`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-/**
- * Export data to JSON format
- * @param {Array} data - Array of crash data objects to export
- * @param {string} filename - Name of the file to export
- */
-function exportToJSON(data, filename) {
-  if (!data || data.length === 0) {
-    alert('No data to export');
-    return;
-  }
-
-  // Create JSON content
-  const jsonContent = JSON.stringify(data, null, 2);
-
-  // Create download link
-  const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', `${filename}.json`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
 
 /**
  * Export charts as images
  * @param {string} filename - Name of the file to export
  */
-function exportChartsAsImage(filename) {
-  // Create a container for all charts
-  const container = document.createElement('div');
-  container.style.display = 'flex';
-  container.style.flexDirection = 'column';
-  container.style.gap = '20px';
-  container.style.padding = '20px';
-  container.style.backgroundColor = 'white';
-  
-  // Clone and add each chart
-  const charts = [
-    document.getElementById('chart'),
-    document.getElementById('timeline-chart'),
-    document.getElementById('operator-chart')
-  ];
-  
-  charts.forEach(chartElement => {
-    if (chartElement) {
-      const clone = chartElement.cloneNode(true);
-      clone.style.maxWidth = '800px';
-      clone.style.height = 'auto';
-      container.appendChild(clone);
-    }
-  });
-  
-  // Add title
-  const title = document.createElement('h2');
-  title.textContent = 'Flight Crash Data Analysis';
-  title.style.textAlign = 'center';
-  container.insertBefore(title, container.firstChild);
-  
-  // Add timestamp
-  const timestamp = document.createElement('p');
-  timestamp.textContent = `Exported on: ${new Date().toLocaleString()}`;
-  timestamp.style.textAlign = 'center';
-  timestamp.style.fontStyle = 'italic';
-  container.appendChild(timestamp);
-  
-  // Render to canvas and download
-  html2canvas(container).then(canvas => {
-    const link = document.createElement('a');
-    link.download = `${filename}_charts.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  });
-}
+
 
 /**
  * Show export options dialog
@@ -858,7 +726,7 @@ function showExportDialog(data) {
   modal.style.justifyContent = 'center';
   modal.style.alignItems = 'center';
   modal.style.zIndex = '1000';
-  
+
   // Create dialog content
   const dialog = document.createElement('div');
   dialog.style.backgroundColor = 'white';
@@ -866,18 +734,18 @@ function showExportDialog(data) {
   dialog.style.borderRadius = '8px';
   dialog.style.width = '400px';
   dialog.style.maxWidth = '90%';
-  
+
   // Add title
   const title = document.createElement('h3');
   title.textContent = 'Export Data';
   title.style.marginTop = '0';
   dialog.appendChild(title);
-  
+
   // Add data info
   const info = document.createElement('p');
   info.textContent = `Exporting ${data.length} crash records`;
   dialog.appendChild(info);
-  
+
   // Add export format options
   const formatLabel = document.createElement('label');
   formatLabel.textContent = 'Select export format:';
@@ -885,20 +753,20 @@ function showExportDialog(data) {
   formatLabel.style.marginBottom = '10px';
   formatLabel.style.fontWeight = 'bold';
   dialog.appendChild(formatLabel);
-  
+
   // Create radio buttons for format selection
   const formats = [
     { id: 'csv', label: 'CSV (Spreadsheet)', checked: true },
     { id: 'json', label: 'JSON (Raw Data)' },
     { id: 'image', label: 'PNG (Charts Image)' }
   ];
-  
+
   let selectedFormat = 'csv';
-  
+
   formats.forEach(format => {
     const container = document.createElement('div');
     container.style.marginBottom = '8px';
-    
+
     const radio = document.createElement('input');
     radio.type = 'radio';
     radio.id = `format-${format.id}`;
@@ -906,21 +774,21 @@ function showExportDialog(data) {
     radio.value = format.id;
     radio.checked = format.checked || false;
     if (format.checked) selectedFormat = format.id;
-    
-    radio.addEventListener('change', function() {
+
+    radio.addEventListener('change', function () {
       selectedFormat = this.value;
     });
-    
+
     const label = document.createElement('label');
     label.htmlFor = `format-${format.id}`;
     label.textContent = format.label;
     label.style.marginLeft = '8px';
-    
+
     container.appendChild(radio);
     container.appendChild(label);
     dialog.appendChild(container);
   });
-  
+
   // Add filename input
   const filenameLabel = document.createElement('label');
   filenameLabel.textContent = 'Filename (without extension):';
@@ -928,7 +796,7 @@ function showExportDialog(data) {
   filenameLabel.style.marginTop = '15px';
   filenameLabel.style.fontWeight = 'bold';
   dialog.appendChild(filenameLabel);
-  
+
   const filenameInput = document.createElement('input');
   filenameInput.type = 'text';
   filenameInput.id = 'export-filename';
@@ -938,40 +806,40 @@ function showExportDialog(data) {
   filenameInput.style.marginTop = '5px';
   filenameInput.style.marginBottom = '15px';
   dialog.appendChild(filenameInput);
-  
+
   // Add buttons
   const buttonContainer = document.createElement('div');
   buttonContainer.style.display = 'flex';
   buttonContainer.style.gap = '10px';
   buttonContainer.style.justifyContent = 'flex-end';
-  
+
   const exportButton = document.createElement('button');
   exportButton.textContent = 'Export';
   exportButton.style.backgroundColor = '#28a745';
-  exportButton.addEventListener('click', function() {
+  exportButton.addEventListener('click', function () {
     const filename = filenameInput.value || 'flight_crash_data';
     exportData(data, selectedFormat, filename);
     document.body.removeChild(modal);
   });
-  
+
   const cancelButton = document.createElement('button');
   cancelButton.textContent = 'Cancel';
   cancelButton.style.backgroundColor = '#6c757d';
-  cancelButton.addEventListener('click', function() {
+  cancelButton.addEventListener('click', function () {
     document.body.removeChild(modal);
   });
-  
+
   buttonContainer.appendChild(cancelButton);
   buttonContainer.appendChild(exportButton);
   dialog.appendChild(buttonContainer);
-  
+
   // Close modal when clicking outside
-  modal.addEventListener('click', function(event) {
+  modal.addEventListener('click', function (event) {
     if (event.target === modal) {
       document.body.removeChild(modal);
     }
   });
-  
+
   // Add dialog to modal and modal to body
   modal.appendChild(dialog);
   document.body.appendChild(modal);
@@ -984,7 +852,7 @@ function showMapView() {
   const mapView = document.getElementById('map-view');
   const leaderboardView = document.getElementById('leaderboard-view');
   const showLeaderboardBtn = document.getElementById('show-leaderboard-btn');
-  
+
   if (mapView && leaderboardView && showLeaderboardBtn) {
     mapView.style.display = 'block';
     leaderboardView.style.display = 'none';
@@ -999,12 +867,12 @@ function showLeaderboardView() {
   const mapView = document.getElementById('map-view');
   const leaderboardView = document.getElementById('leaderboard-view');
   const showLeaderboardBtn = document.getElementById('show-leaderboard-btn');
-  
+
   if (mapView && leaderboardView && showLeaderboardBtn) {
     mapView.style.display = 'none';
     leaderboardView.style.display = 'block';
     showLeaderboardBtn.style.display = 'none';
-    
+
     // Update leaderboard when shown
     updateLeaderboard(crashData);
   }
