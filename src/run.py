@@ -41,13 +41,13 @@ def run_dashboard():
     print("🛑 Press Ctrl+C to stop the dashboard")
     
     try:
-        subprocess.run([sys.executable, "-m", "streamlit", "run", "streamlit_app.py"])
+        subprocess.run([sys.executable, "-m", "streamlit", "run", "src/streamlit_app.py"])
     except KeyboardInterrupt:
         print("\n👋 Dashboard stopped. Thank you for using BUDDHA PROJECT!")
     except FileNotFoundError:
         print("❌ Error: Streamlit not installed. Installing...")
         install_dependencies()
-        subprocess.run([sys.executable, "-m", "streamlit", "run", "streamlit_app.py"])
+        subprocess.run([sys.executable, "-m", "streamlit", "run", "src/streamlit_app.py"])
 
 def main():
     """Main launcher function"""
