@@ -1,0 +1,54 @@
+name: "🚀 Feature Request"
+description: Suggest new flight crash data features
+labels:
+  - feature-request
+  - triage
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ✈️ New Flight Crash Feature
+        Help us improve the platform by suggesting a new feature or enhancement.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: "💥 Problem"
+      description: "What problem are you facing?"
+      placeholder: "I can't filter crashes by aircraft manufacturer"
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: "💡 Proposed Solution"
+      description: "Describe the feature you would like to see"
+      placeholder: "Add a manufacturer filter (Boeing, Airbus, Embraer, etc.)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: "👥 Use Case"
+      description: "Who will benefit and how?"
+      placeholder: "Researchers comparing Boeing vs Airbus safety records"
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "✅ Acceptance Criteria"
+      description: "What conditions must be met for this feature to be complete?"
+      placeholder: |
+        - Filter appears in the sidebar
+        - Correct results are returned
+        - Works on desktop and mobile
+
+  - type: textarea
+    id: data-needed
+    attributes:
+      label: "📊 Data Requirements"
+      description: "Any new data fields or datasets needed?"
+      placeholder: "Aircraft manufacturer column in crash dataset"
