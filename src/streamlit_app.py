@@ -862,6 +862,68 @@ def create_fatality_trends_chart(df, selected_years=None):
     
     return fig
 
+def create_timeline_chart(df, selected_years=None):
+    """Create an interactive timeline of major aviation incidents"""
+    filtered_df = df
+    if selected_years:
+        filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    # Sort by date for timeline
+    timeline_df = filtered_df.sort_values('Date').copy()
+    
+    # Create hover text with enhanced details
+    hover_texts = [
+        f"<b>📅 {row['Date'].strftime('%B %d, %Y')}</b><br>"
+        f"<b>✈️ Operator:</b> {row['Operator']}<br>"
+        f"<b>📍 Location:</b> {row['Location']}<br>"
+        f"<b>💀 Fatalities:</b> {int(row['Fatalities'])}<br>"
+        f"<b>👥 Aboard:</b> {int(row['Aboard'])}<br>"
+        f"<b>📝 Summary:</b> {row['Summary'][:80]}..."
+        for _, row in timeline_df.iterrows()
+    ]
+    
+    # Create the timeline chart
+    fig = go.Figure()
+    
+    # Add scatter plot for timeline
+    fig.add_trace(go.Scatter(
+        x=timeline_df['Date'],
+        y=timeline_df['Fatalities'],
+        mode='markers',
+        marker=dict(
+            size=np.sqrt(timeline_df['Fatalities']) * 3,  # Scale size with fatalities
+            color=timeline_df['Fatalities'],
+            colorscale='Reds',
+            colorbar=dict(title="Fatalities"),
+            line=dict(width=1, color='white')
+        ),
+        text=hover_texts,
+        hovertemplate="%{text}<extra></extra>",
+        name="Aviation Incidents"
+    ))
+    
+    year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
+    fig.update_layout(
+        title=dict(
+            text=f"📅 Aviation Incident Timeline{year_text}",
+            font=dict(size=24, color=COLORS['text'])
+        ),
+        xaxis=dict(
+            title=dict(text="Date", font=dict(size=18)),
+            tickfont=dict(size=14)
+        ),
+        yaxis=dict(
+            title=dict(text="Fatalities", font=dict(size=18)),
+            tickfont=dict(size=14)
+        ),
+        height=600,
+        paper_bgcolor=COLORS['light_bg'],
+        plot_bgcolor='white',
+        font=dict(color=COLORS['text'], size=16)
+    )
+    
+    return fig
+
 def create_cost_analysis(df, selected_year=None):
     """Cost analysis with enhanced tooltips"""
     filtered_df = df if selected_year is None else df[df['year'] == selected_year]
@@ -979,13 +1041,13 @@ def create_cost_analysis(df, selected_year=None):
     
     return cost_fig, risk_fig
 
-def create_survival_analysis_chart(df, selected_years=None):
-    """Survival rate analysis with enhanced tooltips"""
+def create_day_of_week_analysis(df, selected_years=None):
+    """Day of week analysis with enhanced tooltips"""
     filtered_df = df
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
     
-    # Group by day of week
+    # Group by day of week using numpy/pandas approach
     day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     day_stats = filtered_df.groupby('day_name').agg({
         'Date': 'count',
@@ -998,6 +1060,16 @@ def create_survival_analysis_chart(df, selected_years=None):
     day_stats['avg_fatalities'] = day_stats['fatalities'] / day_stats['crashes'].replace(0, 1)
     day_stats['survival_rate'] = ((day_stats['aboard'] - day_stats['fatalities']) / day_stats['aboard'].replace(0, 1) * 100).fillna(0)
     
+    # Convert to numpy arrays for operations that cause type errors
+    crashes_values = day_stats['crashes'].values
+    crashes_indices = day_stats.index.values
+    
+    # Find max/min manually instead of using idxmax/idxmin
+    max_crash_idx = np.argmax(crashes_values)
+    min_crash_idx = np.argmin(crashes_values)
+    most_dangerous_day = crashes_indices[max_crash_idx]
+    safest_day = crashes_indices[min_crash_idx]
+    
     # Enhanced hover text
     hover_texts = [
         f"<b>📅 {day}</b><br>"
@@ -1005,7 +1077,7 @@ def create_survival_analysis_chart(df, selected_years=None):
         f"<b>💀 Total Fatalities:</b> {int(day_stats.loc[day, 'fatalities'])}<br>"
         f"<b>📊 Avg Fatalities/Crash:</b> {day_stats.loc[day, 'avg_fatalities']:.1f}<br>"
         f"<b>✅ Survival Rate:</b> {day_stats.loc[day, 'survival_rate']:.1f}%<br>"
-        f"<b>🎲 Risk Level:</b> {'High' if day_stats.loc[day, 'crashes'] > day_stats['crashes'].median() else 'Low'}"
+        f"<b>🎲 Risk Level:</b> {'High' if day_stats.loc[day, 'crashes'] > np.median(day_stats['crashes'].values) else 'Low'}"
         for day in day_order
     ]
     
@@ -1049,6 +1121,69 @@ def create_survival_analysis_chart(df, selected_years=None):
     )
     
     return fig, day_stats
+
+def create_survival_analysis_chart(df, selected_years=None):
+    """Survival rate analysis with enhanced tooltips"""
+    filtered_df = df
+    if selected_years:
+        filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    # Group by year to calculate survival rates
+    yearly_stats = filtered_df.groupby('year').agg({
+        'Aboard': 'sum',
+        'Fatalities': 'sum'
+    }).reset_index()
+    
+    # Calculate survival rate
+    yearly_stats['survivors'] = yearly_stats['Aboard'] - yearly_stats['Fatalities']
+    yearly_stats['survival_rate'] = (yearly_stats['survivors'] / yearly_stats['Aboard'] * 100).fillna(0)
+    
+    # Enhanced hover text
+    hover_texts = [
+        f"<b>📅 Year:</b> {int(row['year'])}<br>"
+        f"<b>👥 Aboard:</b> {int(row['Aboard'])}<br>"
+        f"<b>💀 Fatalities:</b> {int(row['Fatalities'])}<br>"
+        f"<b>✅ Survivors:</b> {int(row['survivors'])}<br>"
+        f"<b>🛡️ Survival Rate:</b> {row['survival_rate']:.1f}%"
+        for _, row in yearly_stats.iterrows()
+    ]
+    
+    fig = go.Figure()
+    
+    # Add survival rate line
+    fig.add_trace(go.Scatter(
+        x=yearly_stats['year'],
+        y=yearly_stats['survival_rate'],
+        mode='lines+markers',
+        line=dict(color=COLORS['success'], width=4),
+        marker=dict(size=10, color=COLORS['accent'], line=dict(color='white', width=2)),
+        name='Survival Rate',
+        hovertext=hover_texts,
+        hovertemplate="%{hovertext}<extra></extra>"
+    ))
+    
+    year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
+    fig.update_layout(
+        title=dict(
+            text=f"🛡️ Survival Rate Over Time{year_text}",
+            font=dict(size=24, color=COLORS['text'])
+        ),
+        xaxis=dict(
+            title=dict(text="Year", font=dict(size=18)),
+            tickfont=dict(size=14)
+        ),
+        yaxis=dict(
+            title=dict(text="Survival Rate (%)", font=dict(size=18)),
+            tickfont=dict(size=14),
+            range=[0, 100]
+        ),
+        height=600,
+        paper_bgcolor=COLORS['light_bg'],
+        plot_bgcolor='white',
+        font=dict(color=COLORS['text'], size=16)
+    )
+    
+    return fig
 
 def create_seasonal_analysis(df, selected_years=None):
     """Analyze crashes by season with enhanced tooltips"""
@@ -1327,9 +1462,23 @@ def detect_anomalies(df):
     }).reset_index()
     yearly_data.columns = ['year', 'crashes', 'fatalities']
     
-    # Calculate z-scores
-    yearly_data['crash_zscore'] = np.abs(stats.zscore(yearly_data['crashes']))
-    yearly_data['fatality_zscore'] = np.abs(stats.zscore(yearly_data['fatalities']))
+    # Extract values as numpy arrays
+    crashes_values = yearly_data['crashes'].values.astype(float)
+    fatalities_values = yearly_data['fatalities'].values.astype(float)
+    
+    # Calculate z-scores using numpy
+    crashes_mean = np.mean(crashes_values)
+    crashes_std = np.std(crashes_values)
+    fatalities_mean = np.mean(fatalities_values)
+    fatalities_std = np.std(fatalities_values)
+    
+    # Handle case where std is 0
+    crashes_zscore = np.abs((crashes_values - crashes_mean) / crashes_std) if crashes_std != 0 else np.zeros_like(crashes_values)
+    fatalities_zscore = np.abs((fatalities_values - fatalities_mean) / fatalities_std) if fatalities_std != 0 else np.zeros_like(fatalities_values)
+    
+    # Add z-scores to dataframe
+    yearly_data['crash_zscore'] = crashes_zscore
+    yearly_data['fatality_zscore'] = fatalities_zscore
     
     # Anomalies are points with z-score > 2
     anomalies = yearly_data[
@@ -1880,9 +2029,13 @@ def main():
             day_fig, day_stats = create_day_of_week_analysis(df, stat_year_range)
             st.plotly_chart(day_fig, use_container_width=True)
             
-            # Show insights
-            most_dangerous_day = day_stats['crashes'].idxmax()
-            safest_day = day_stats['crashes'].idxmin()
+            # Show insights - manually find max/min instead of using idxmax/idxmin
+            day_crashes_values = day_stats['crashes'].values
+            day_indices = day_stats.index.values
+            max_crash_idx = np.argmax(day_crashes_values)
+            min_crash_idx = np.argmin(day_crashes_values)
+            most_dangerous_day = day_indices[max_crash_idx]
+            safest_day = day_indices[min_crash_idx]
             
             st.markdown(f"""
             **🎯 Key Insights:**
@@ -1896,9 +2049,13 @@ def main():
             season_fig, season_stats = create_seasonal_analysis(df, stat_year_range)
             st.plotly_chart(season_fig, use_container_width=True)
             
-            # Show insights
-            most_dangerous_season = season_stats['crashes'].idxmax()
-            safest_season = season_stats['crashes'].idxmin()
+            # Show insights - manually find max/min instead of using idxmax/idxmin
+            season_crashes_values = season_stats['crashes'].values
+            season_indices = season_stats.index.values
+            max_crash_idx = np.argmax(season_crashes_values)
+            min_crash_idx = np.argmin(season_crashes_values)
+            most_dangerous_season = season_indices[max_crash_idx]
+            safest_season = season_indices[min_crash_idx]
             
             st.markdown(f"""
             **🎯 Key Insights:**
@@ -1970,7 +2127,7 @@ def main():
             total_crashes = len(filtered_stat_data)
             total_fatalities = int(filtered_stat_data['Fatalities'].sum())
             avg_fatalities = filtered_stat_data['Fatalities'].mean()
-            median_fatalities = filtered_stat_data['Fatalities'].median()
+            median_fatalities = filtered_stat_data['Fatalities'].median()  # This might still cause type error
             std_fatalities = filtered_stat_data['Fatalities'].std()
             
             summary_df = pd.DataFrame({
@@ -1987,7 +2144,7 @@ def main():
                     f"{total_crashes:,}",
                     f"{total_fatalities:,}",
                     f"{avg_fatalities:.2f}",
-                    f"{median_fatalities:.1f}",
+                    f"{np.median(filtered_stat_data['Fatalities'].values):.1f}",  # Use numpy median
                     f"{std_fatalities:.2f}",
                     f"{int(filtered_stat_data['Fatalities'].max())}",
                     f"{stat_year_range[0]} - {stat_year_range[1]}"
@@ -2029,72 +2186,6 @@ def main():
                 """)
             else:
                 st.info("Not enough data for trend analysis. Try expanding the year range.")
-    
-    # Tab 7: Predictive Insights & Advanced Analytics
-    with tab7:
-        st.markdown('<h2 class="tab-header">🔮 Predictive Insights & Advanced Analytics</h2>', unsafe_allow_html=True)
-        
-        st.markdown("""
-        ### 📈 Powered by Machine Learning & Statistical Analysis
-        Discover hidden patterns, predict future trends, and get data-driven insights about aviation safety.
-        """)
-        
-        # Auto-generated insights section
-        st.markdown("---")
-        st.markdown("### 💡 Data-Driven Insights & Fun Facts")
-        
-        insights = generate_ai_insights(df)
-        
-        # Display insights in cards
-        cols_per_row = 3
-        for i in range(0, len(insights), cols_per_row):
-            cols = st.columns(cols_per_row)
-            for j, col in enumerate(cols):
-                if i + j < len(insights):
-                    insight = insights[i + j]
-                    with col:
-                        st.markdown(f"""
-                        <div class="metric-card" style="text-align: left; min-height: 150px;">
-                            <div style="font-size: 3rem; margin-bottom: 0.5rem;">{insight['icon']}</div>
-                            <div style="font-size: 1.2rem; font-weight: bold; color: {COLORS['primary']}; margin-bottom: 0.5rem;">{insight['title']}</div>
-                            <div style="font-size: 0.95rem; color: {COLORS['text']};">{insight['text']}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        # Predictive Analytics
-        st.markdown("### 🔮 Future Trend Predictions")
-        st.markdown("""
-        Using **polynomial regression** to forecast future crash patterns based on historical data.
-        The model analyzes trends and predicts the next 10 years.
-        """)
-        
-        prediction_fig, future_years, predictions = create_prediction_chart(df)
-        st.plotly_chart(prediction_fig, use_container_width=True)
-        
-        # Prediction summary
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            current_avg = df[df['year'] >= df['year'].max() - 5].groupby('year').size().mean()
-            st.metric("Current Avg (Last 5 Years)", f"{current_avg:.0f} crashes/year")
-        with col2:
-            predicted_avg = predictions.mean()
-            st.metric("Predicted Avg (Next 10 Years)", f"{predicted_avg:.0f} crashes/year")
-        with col3:
-            trend = "Decreasing ↓" if predicted_avg < current_avg else "Increasing ↑"
-            change_pct = abs((predicted_avg - current_avg) / current_avg * 100)
-            st.metric("Trend Direction", trend, f"{change_pct:.1f}%")
-        with col4:
-            st.metric("Next Year Prediction", f"{int(predictions[0])} crashes")
-        
-        st.markdown("---")
-        
-        # Anomaly Detection
-        st.markdown("### 🚨 Anomaly Detection - Unusual Patterns")
-        st.markdown("""
-        Using **statistical analysis (Z-score)** to detect years with abnormally high crashes or fatalities.
-        Anomalies are marked when values are >2 standard deviations from the mean.
         """)
         
         anomaly_fig, anomalies = create_anomaly_chart(df)
@@ -2217,7 +2308,7 @@ def main():
             day_factor = ((day_crashes[risk_day] - day_avg) / day_avg * 10) if risk_day in day_crashes.index else 0
             
             # Total risk
-            total_risk = max(0, min(100, base_risk + operator_factor + season_factor + day_factor))
+            total_risk = max(0, min(100, float(base_risk + operator_factor + season_factor + day_factor)))
             
             # Display result
             risk_color = COLORS['success'] if total_risk < 40 else COLORS['warning'] if total_risk < 70 else COLORS['danger']
@@ -2241,8 +2332,9 @@ def main():
             Modern aviation is extremely safe, and this calculator is for educational purposes only.
             """)
 
-    # Tab 6: Survival Rate Analysis
-    with tab6:
+    # Tab 8: Survival Rate Analysis
+    with st.expander("🛡️ Survival Rate Analysis", expanded=False):
+
         st.markdown('<h2 class="tab-header">🛡️ Survival Rate Analysis</h2>', unsafe_allow_html=True)
         
         col1, col2 = st.columns([1, 3])
