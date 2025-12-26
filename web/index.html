@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
     <link rel="stylesheet" href="dashboard.css">
 </head>
+
 <body>
     <nav class="navbar">
         <div class="logo">Flight Crash History</div>
@@ -36,6 +38,7 @@
             <button class="tab-button" onclick="openTab(event, 'ml-risk')">🧠 ML PREDICTION & RISK</button>
             <button class="tab-button" onclick="openTab(event, 'deep-dive')">🔎 CRASH DEEP DIVE</button>
             <button class="tab-button" onclick="openTab(event, 'trends')">💀 FATALITY TRENDS</button>
+            <button class="tab-button" onclick="openTab(event, 'data-grid')">📊 DATA GRID</button>
         </div>
 
         <div id="globe" class="tab-content active">
@@ -67,9 +70,11 @@
                     <div class="sidebar">
                         <h3 class="chart-title" style="border: none;">🧠 Risk Parameters</h3>
                         <label for="severity-threshold">Minimum Severity Score:</label>
-                        <input type="range" id="severity-threshold" min="0" max="100" value="50" oninput="updateMLRisk(this.value)">
+                        <input type="range" id="severity-threshold" min="0" max="100" value="50"
+                            oninput="updateMLRisk(this.value)">
                         <span id="threshold-value" style="color: var(--accent-secondary); font-weight: 700;">50</span>
-                        <p style="margin-top: 15px;">Crashes Above Threshold: <span id="crashes-above-threshold" style="color: var(--danger);">...</span></p>
+                        <p style="margin-top: 15px;">Crashes Above Threshold: <span id="crashes-above-threshold"
+                                style="color: var(--danger);">...</span></p>
                     </div>
                 </div>
                 <div class="flex-right">
@@ -91,9 +96,12 @@
                     <div class="sidebar">
                         <h3 class="chart-title" style="border: none;">🔎 Filter High-Impact Events</h3>
                         <label for="dive-severity-min">Min Severity Score:</label>
-                        <input type="range" id="dive-severity-min" min="0" max="100" value="70" oninput="updateDeepDive()">
-                        <span id="dive-severity-min-value" style="color: var(--accent-secondary); font-weight: 700;">70</span>
-                        <p style="margin-top: 15px;">**Total Filtered Crashes:** <span id="dive-filtered-count" style="color: var(--accent-primary);">...</span></p>
+                        <input type="range" id="dive-severity-min" min="0" max="100" value="70"
+                            oninput="updateDeepDive()">
+                        <span id="dive-severity-min-value"
+                            style="color: var(--accent-secondary); font-weight: 700;">70</span>
+                        <p style="margin-top: 15px;">**Total Filtered Crashes:** <span id="dive-filtered-count"
+                                style="color: var(--accent-primary);">...</span></p>
                     </div>
                 </div>
                 <div class="flex-right">
@@ -113,8 +121,31 @@
                 <div id="fatality-trends-chart" style="height: 600px;"></div>
             </div>
         </div>
+
+        <div id="data-grid" class="tab-content">
+            <div class="table-container">
+                <h3 class="chart-title">📊 Comprehensive Crash Data</h3>
+                <table class="data-table" id="crash-table">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Date</th>
+                            <th>Operator</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Fatalities</th>
+                            <th>Severity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script src="dashboard.js"></script>
 </body>
+
 </html>

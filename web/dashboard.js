@@ -1,6 +1,6 @@
 const COLORS = {
-    bgMain: '#1E1E2F', bgCard: '#27293D', text: '#E0E0E0', 
-    accentPrimary: '#4DD0E1', accentSecondary: '#FFCA28', 
+    bgMain: '#1E1E2F', bgCard: '#27293D', text: '#E0E0E0',
+    accentPrimary: '#4DD0E1', accentSecondary: '#FFCA28',
     danger: '#EF5350', success: '#66BB6A', textSecondary: '#B0B0C4'
 };
 
@@ -11,7 +11,7 @@ function generateSampleData() {
     const operators = ['Aeroflot', 'Pan Am', 'American Airlines', 'Air France', 'Lufthansa', 'Delta'];
     const types = ['Boeing 747', 'DC-3', 'Airbus A320', 'Cessna 172', 'Concorde'];
     const locations = ['New York', 'Paris', 'Moscow', 'Pacific Ocean', 'London'];
-    
+
     for (let i = 0; i < 500; i++) {
         const year = 1950 + Math.floor(Math.random() * 70);
         const fatalities = Math.round(Math.pow(Math.random(), 3) * 300);
@@ -19,14 +19,14 @@ function generateSampleData() {
         const operator = operators[Math.floor(Math.random() * operators.length)];
         const type = types[Math.floor(Math.random() * types.length)];
         const ground = Math.random() < 0.05 ? Math.round(Math.random() * 10) : 0;
-        
+
         let baseScore = (fatalities * 0.5 + ground * 0.2);
         const isJet = type.includes('Boeing') || type.includes('Airbus') || type.includes('Concorde');
         baseScore += isJet ? 15 : 0;
         baseScore += operator === 'Aeroflot' || operator === 'Pan Am' ? 20 : 0;
 
         let severityScore = Math.min(100, Math.log1p(baseScore) * 15 + (Math.random() * 10 - 5)).toFixed(2);
-        
+
         data.push({
             id: i,
             year: year,
@@ -91,20 +91,21 @@ async function loadCrashData() {
 
 
 async function initDataAndUI() {
-        try {
-            AVIATION_DATA = await loadCrashData();
-            console.log(`Loaded ${AVIATION_DATA.length} crash records`);
-        } catch (error) {
-            console.error('Failed to load real crash data or data not found. Falling back to sample data.', error);
-            AVIATION_DATA = generateSampleData();
-        }
-
-        updateMetrics();
-        populateYearSelectors();
-        renderGlobe();
-        renderMLRisk();
-        renderFatalityTrends();
+    try {
+        AVIATION_DATA = await loadCrashData();
+        console.log(`Loaded ${AVIATION_DATA.length} crash records`);
+    } catch (error) {
+        console.error('Failed to load real crash data or data not found. Falling back to sample data.', error);
+        AVIATION_DATA = generateSampleData();
     }
+
+    updateMetrics();
+    populateYearSelectors();
+    renderGlobe();
+    renderMLRisk();
+    renderFatalityTrends();
+    renderDataGrid();
+}
 
 
 function updateMetrics() {
@@ -144,22 +145,22 @@ function populateYearSelectors() {
 
 function getPlotlyLayout(title, height, yaxisTitle = '', xaxisTitle = '') {
     return {
-        title: { 
-            text: title, 
-            font: { color: COLORS.text, size: 20 } 
+        title: {
+            text: title,
+            font: { color: COLORS.text, size: 20 }
         },
         height: height,
         paper_bgcolor: COLORS.bgCard,
         plot_bgcolor: COLORS.bgCard,
         font: { color: COLORS.text, size: 12 },
         margin: { l: 60, r: 20, t: 50, b: 60 },
-        xaxis: { 
-            gridcolor: '#444', linecolor: '#444', 
-            title: xaxisTitle, 
-            zerolinecolor: '#444' 
+        xaxis: {
+            gridcolor: '#444', linecolor: '#444',
+            title: xaxisTitle,
+            zerolinecolor: '#444'
         },
-        yaxis: { 
-            gridcolor: '#444', linecolor: '#444', 
+        yaxis: {
+            gridcolor: '#444', linecolor: '#444',
             title: yaxisTitle,
             zerolinecolor: '#444'
         },
@@ -188,7 +189,7 @@ function renderGlobe() {
             colorbar: { title: 'Severity Score', tickfont: { color: COLORS.text } },
             line: { width: 1, color: COLORS.text }
         },
-        hovertext: filteredData.map(d => 
+        hovertext: filteredData.map(d =>
             `<b>${d.operator}</b><br>Date: ${d.date}<br>Fatalities: ${d.fatalities}<br><b>Severity: ${d.severityScore}</b>`
         ),
         hovertemplate: "%{hovertext}<extra></extra>"
@@ -236,7 +237,7 @@ function renderSeverityScatter() {
                 showscale: true,
                 colorbar: { title: 'Severity Score', tickfont: { color: COLORS.text } }
             },
-            text: AVIATION_DATA.map(d => 
+            text: AVIATION_DATA.map(d =>
                 `Operator: ${d.operator}<br>Severity: ${d.severityScore}<br>Fatalities: ${d.fatalities}`
             ),
             hovertemplate: "%{text}<extra></extra>"
@@ -257,14 +258,14 @@ function renderSeverityScatter() {
 
     const layout = {
         ...getPlotlyLayout('✨ ML-Driven Severity Analysis (Fatalities vs. Persons Aboard)', 600, 'Total Fatalities (Log)', 'Total Persons Aboard (Log)'),
-        xaxis: { 
-            type: 'log', title: 'Total Persons Aboard (Log Scale)', gridcolor: '#444', linecolor: '#444' 
+        xaxis: {
+            type: 'log', title: 'Total Persons Aboard (Log Scale)', gridcolor: '#444', linecolor: '#444'
         },
-        yaxis: { 
+        yaxis: {
             type: 'log', title: 'Total Fatalities (Log Scale)', gridcolor: '#444', linecolor: '#444'
         }
     };
-    
+
     Plotly.newPlot('severity-scatter-chart', data, layout, { responsive: true });
 }
 
@@ -401,6 +402,36 @@ function renderFatalityTrends() {
     Plotly.newPlot('fatality-trends-chart', data, layout, { responsive: true });
 }
 
+// --- Tab 5: Data Grid ---
+function renderDataGrid() {
+    const tbody = document.querySelector('#crash-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    // Show top 200 most recent records by default
+    const displayedData = AVIATION_DATA.sort((a, b) => b.year - a.year).slice(0, 200);
+
+    const rows = displayedData.map(d => {
+        let severityClass = 'severity-low';
+        if (d.severityScore >= 70) severityClass = 'severity-high';
+        else if (d.severityScore >= 40) severityClass = 'severity-medium';
+
+        return `
+            <tr>
+                <td>${d.year}</td>
+                <td>${d.date}</td>
+                <td>${d.operator}</td>
+                <td>${d.type}</td>
+                <td>${d.location}</td>
+                <td>${d.fatalities}</td>
+                <td class="${severityClass}">${d.severityScore}</td>
+            </tr>
+        `;
+    }).join('');
+
+    tbody.innerHTML = rows;
+}
+
 
 // --- UI Functions ---
 function openTab(evt, tabName) {
@@ -414,14 +445,14 @@ function openTab(evt, tabName) {
     }
     document.getElementById(tabName).classList.add('active');
     evt.currentTarget.classList.add('active');
-    
+
     // Re-render charts on tab switch to ensure responsiveness
     // Using setTimeout to allow DOM update
     setTimeout(() => {
         if (tabName === 'globe') renderGlobe();
-        if (tabName === 'ml-risk') renderMLRisk();
         if (tabName === 'deep-dive') updateDeepDive();
         if (tabName === 'trends') renderFatalityTrends();
+        if (tabName === 'data-grid') renderDataGrid();
     }, 10);
 }
 
