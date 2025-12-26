@@ -1,104 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flight Crash Map – Filters & Analytics</title>
-    <link rel="stylesheet" href="style.css" />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <!-- Add Leaflet.markercluster CSS -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"
-    />
-  </head>
-  <body>
-    <div id="sidebar">
-      <h2>Crash Filters</h2>
 
-      <label>Year Range</label>
-      <div class="row">
-        <input type="number" id="yearMin" placeholder="From" />
-        <input type="number" id="yearMax" placeholder="To" />
-      </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 ADVANCED AVIATION SAFETY MONITOR</title>
+    <!-- Plotly.js for charting -->
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
 
-      <label>Aircraft Type</label>
-      <select id="typeFilter">
-        <option value="All">All</option>
-        <option value="Commercial">Commercial</option>
-        <option value="Cargo">Cargo</option>
-        <option value="Private">Private</option>
-        <option value="Military">Military</option>
-      </select>
+<body>
+    <nav class="navbar">
+        <div class="logo">Flight Crash History</div>
 
-      <label>Country / Region</label>
-      <input type="text" id="regionFilter" placeholder="e.g. India" />
+        <!-- Hidden checkbox to toggle menu -->
+        <input type="checkbox" id="menu-toggle" />
+        <label for="menu-toggle" class="hamburger">☰</label>
 
-      <label>Min Fatalities</label>
-      <input type="number" id="fatalFilter" placeholder="≥ fatalities" />
+        <ul class="nav-links">
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Data</a></li>
+            <li><a href="#">Analysis</a></li>
+            <li><a href="#">About</a></li>
+        </ul>
+    </nav>
 
-      <!-- Weather Filters Section -->
-      <hr />
-      <h3>Weather Filters</h3>
-      <label>Precipitation</label>
-      <select id="precipitationFilter">
-        <option value="all">Any</option>
-        <option value="rain">Rain</option>
-        <option value="snow">Snow</option>
-        <option value="clear">Clear</option>
-      </select>
+    <div class="container">
+        <h1 class="header">🚀 ADVANCED AVIATION SAFETY MONITOR</h1>
 
-      <label>Wind Speed (m/s)</label>
-      <div class="row">
-        <input type="number" id="windMin" placeholder="Min" />
-        <input type="number" id="windMax" placeholder="Max" />
-      </div>
+        <div class="metrics-grid" id="metrics-grid">
+            <!-- Metrics will be inserted here by JavaScript -->
+        </div>
 
-      <label>Visibility (km)</label>
-      <input type="number" id="visibilityFilter" placeholder="Max visibility" />
+        <div class="tabs-container">
+            <button class="tab-button active" onclick="openTab(event, 'globe')">🌍 3D GLOBE (ML-SEVERITY)</button>
+            <button class="tab-button" onclick="openTab(event, 'ml-risk')">🧠 ML PREDICTION & RISK</button>
+            <button class="tab-button" onclick="openTab(event, 'deep-dive')">🔎 CRASH DEEP DIVE</button>
+            <button class="tab-button" onclick="openTab(event, 'trends')">💀 FATALITY TRENDS</button>
+            <button class="tab-button" onclick="openTab(event, 'data-grid')">📊 DATA GRID</button>
+        </div>
 
-      <button id="applyFilter">Apply Filters</button>
-      <button id="resetFilter">Reset Filters</button>
+        <div id="globe" class="tab-content active">
+            <div class="flex-container">
+                <div class="flex-left">
+                    <div class="sidebar">
+                        <h3 class="chart-title" style="border: none;">🎯 Filters</h3>
+                        <label for="globe-year-select">Select Year:</label>
+                        <select id="globe-year-select" onchange="renderGlobe()">
+                            <option value="All">All Years</option>
+                        </select>
+                        <p style="color: var(--accent-primary); margin-top: 15px; font-size: 0.9em;">
+                            Marker size and color indicate the **ML-Predicted Severity Score** (0-100).
+                        </p>
+                    </div>
+                </div>
+                <div class="flex-right">
+                    <div class="content-panel">
+                        <h3 class="chart-title">🌍 Interactive 3D Globe</h3>
+                        <div id="globe-chart" style="height: 750px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      <hr />
+        <div id="ml-risk" class="tab-content">
+            <div class="flex-container">
+                <div class="flex-left">
+                    <div class="sidebar">
+                        <h3 class="chart-title" style="border: none;">🧠 Risk Parameters</h3>
+                        <label for="severity-threshold">Minimum Severity Score:</label>
+                        <input type="range" id="severity-threshold" min="0" max="100" value="50"
+                            oninput="updateMLRisk(this.value)">
+                        <span id="threshold-value" style="color: var(--accent-secondary); font-weight: 700;">50</span>
+                        <p style="margin-top: 15px;">Crashes Above Threshold: <span id="crashes-above-threshold"
+                                style="color: var(--danger);">...</span></p>
+                    </div>
+                </div>
+                <div class="flex-right">
+                    <div class="content-panel">
+                        <h3 class="chart-title">✨ ML-Driven Severity Analysis (Fatalities vs. Aboard)</h3>
+                        <div id="severity-scatter-chart" style="height: 600px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-panel">
+                <h3 class="chart-title">🥇 Airline Weighted Risk Ranking (ML-Enhanced)</h3>
+                <div id="operator-risk-chart" style="height: 600px;"></div>
+            </div>
+        </div>
 
-      <h3>Analytics</h3>
-      <div id="stats">
-        <p>Total Crashes: <span id="count"></span></p>
-        <p>Total Fatalities: <span id="fatalities"></span></p>
-        <p>Average Fatalities: <span id="avg"></span></p>
-      </div>
+        <div id="deep-dive" class="tab-content">
+            <div class="flex-container">
+                <div class="flex-left">
+                    <div class="sidebar">
+                        <h3 class="chart-title" style="border: none;">🔎 Filter High-Impact Events</h3>
+                        <label for="dive-severity-min">Min Severity Score:</label>
+                        <input type="range" id="dive-severity-min" min="0" max="100" value="70"
+                            oninput="updateDeepDive()">
+                        <span id="dive-severity-min-value"
+                            style="color: var(--accent-secondary); font-weight: 700;">70</span>
+                        <p style="margin-top: 15px;">**Total Filtered Crashes:** <span id="dive-filtered-count"
+                                style="color: var(--accent-primary);">...</span></p>
+                    </div>
+                </div>
+                <div class="flex-right">
+                    <div class="content-panel">
+                        <h3 class="chart-title">📋 Top Filtered High-Impact Crashes</h3>
+                        <div id="deep-dive-results">
+                            <p style="color: var(--text-secondary);">Select filters to view crash details here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      <canvas id="chart" width="200" height="200"></canvas>
-      
-      <hr />
-      
-      <h3>Timeline</h3>
-      <div id="timeline-container">
-        <canvas id="timeline-chart" width="200" height="150"></canvas>
-      </div>
-      
-      <hr />
-      
-      <h3>Operator Analysis</h3>
-      <div id="operator-container">
-        <canvas id="operator-chart" width="200" height="200"></canvas>
-      </div>
+        <div id="trends" class="tab-content">
+            <div class="content-panel">
+                <h3 class="chart-title">💀 Fatality Trends Over Time</h3>
+                <div id="fatality-trends-chart" style="height: 600px;"></div>
+            </div>
+        </div>
+
+        <div id="data-grid" class="tab-content">
+            <div class="table-container">
+                <h3 class="chart-title">📊 Comprehensive Crash Data</h3>
+                <table class="data-table" id="crash-table">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Date</th>
+                            <th>Operator</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Fatalities</th>
+                            <th>Severity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <div id="map"></div>
+    <script src="dashboard.js"></script>
+</body>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Add Leaflet.markercluster JS -->
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../src/script.js"></script>
-  </body>
 </html>
