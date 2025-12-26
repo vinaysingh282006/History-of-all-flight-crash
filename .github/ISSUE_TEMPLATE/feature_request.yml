@@ -1,27 +1,31 @@
 name: "🚀 Feature Request"
 description: Suggest new flight crash data features
-labels: ["feature-request", "triage"]
+labels:
+  - feature-request
+  - triage
+
 body:
   - type: markdown
     attributes:
       value: |
-        ## New Flight Crash Feature
+        ## ✈️ New Flight Crash Feature
+        Help us improve the platform by suggesting a new feature or enhancement.
 
   - type: textarea
     id: problem
     attributes:
       label: "💥 Problem"
-      description: "What can't you do now?"
-      placeholder: "Can't filter crashes by aircraft manufacturer"
+      description: "What problem are you facing?"
+      placeholder: "I can't filter crashes by aircraft manufacturer"
     validations:
       required: true
 
   - type: textarea
     id: solution
     attributes:
-      label: "💡 Solution"
-      description: "What feature do you want?"
-      placeholder: "Add filter dropdown: Boeing, Airbus, Embraer, etc."
+      label: "💡 Proposed Solution"
+      description: "Describe the feature you would like to see"
+      placeholder: "Add a manufacturer filter (Boeing, Airbus, Embraer, etc.)"
     validations:
       required: true
 
@@ -29,22 +33,22 @@ body:
     id: use-case
     attributes:
       label: "👥 Use Case"
-      description: "Who benefits? Example usage?"
-      placeholder: "Researchers want to analyze Boeing vs Airbus safety stats"
+      description: "Who will benefit and how?"
+      placeholder: "Researchers comparing Boeing vs Airbus safety records"
 
   - type: textarea
     id: acceptance
     attributes:
-      label: "✅ Done When"
-      description: "What makes it complete?"
+      label: "✅ Acceptance Criteria"
+      description: "What conditions must be met for this feature to be complete?"
       placeholder: |
-        - Filter appears in sidebar
-        - Returns correct results
-        - Works on mobile
+        - Filter appears in the sidebar
+        - Correct results are returned
+        - Works on desktop and mobile
 
   - type: textarea
     id: data-needed
     attributes:
-      label: "📊 Data Needed?"
-      description: "Any new data fields required?"
-      placeholder: "Aircraft manufacturer column in dataset"
+      label: "📊 Data Requirements"
+      description: "Any new data fields or datasets needed?"
+      placeholder: "Aircraft manufacturer column in crash dataset"
