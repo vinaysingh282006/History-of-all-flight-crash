@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✈️ Aviation Crash Analytics Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <h1 class="dashboard-title">✈️ Aviation Crash Analytics Dashboard</h1>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalRecords">0</div>
+                    <div class="stat-label">📊 Total Records</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalFatalities">0</div>
+                    <div class="stat-label">💀 Total Fatalities</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="yearRange">1908-2022</div>
+                    <div class="stat-label">📅 Year Range</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="airlineCount">0</div>
+                    <div class="stat-label">✈️ Airlines</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Filters -->
+        <div class="filters-container">
+            <div class="filter-group">
+                <label for="yearFilter">Year Range:</label>
+                <input type="range" id="yearFilter" min="1908" max="2022" value="2022" class="slider">
+                <span id="yearFilterValue">2022</span>
+            </div>
+            <div class="filter-group">
+                <label for="regionFilter">Region:</label>
+                <select id="regionFilter">
+                    <option value="all">All Regions</option>
+                    <option value="USA">USA</option>
+                    <option value="Europe">Europe</option>
+                    <option value="Asia">Asia</option>
+                    <option value="Africa">Africa</option>
+                    <option value="South America">South America</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="crashTypeFilter">Crash Type:</label>
+                <select id="crashTypeFilter">
+                    <option value="all">All Types</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Cargo">Cargo</option>
+                    <option value="Military">Military</option>
+                    <option value="Private">Private</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs-container">
+            <button class="tab-button active" data-tab="overview">Overview</button>
+            <button class="tab-button" data-tab="globe">3D Globe</button>
+            <button class="tab-button" data-tab="trends">Trends</button>
+            <button class="tab-button" data-tab="analysis">Analysis</button>
+            <button class="tab-button" data-tab="costs">Costs & Risk</button>
+            <button class="tab-button" data-tab="insights">Insights</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-pane active">
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h3>Yearly Crash Trends</h3>
+                        <div id="yearlyTrendChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Fatality Trends</h3>
+                        <div id="fatalityTrendChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Crash Types Distribution</h3>
+                        <div id="typeDistributionChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Top Airlines by Crash Count</h3>
+                        <div id="airlineCrashChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Globe Tab -->
+            <div id="globe" class="tab-pane">
+                <div class="chart-container-full">
+                    <h3>Global Crash Distribution Map</h3>
+                    <div id="globeMap" style="height: 600px; width: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- Trends Tab -->
+            <div id="trends" class="tab-pane">
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h3>Monthly Crash Patterns</h3>
+                        <div id="monthlyPatternChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Seasonal Analysis</h3>
+                        <div id="seasonalChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Day of Week Analysis</h3>
+                        <div id="dayOfWeekChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Decade Comparison</h3>
+                        <div id="decadeChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Tab -->
+            <div id="analysis" class="tab-pane">
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h3>Crash Reasons</h3>
+                        <div id="crashReasonsChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Correlation Heatmap</h3>
+                        <div id="correlationHeatmap"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Aircraft Type Analysis</h3>
+                        <div id="aircraftTypeChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Survival Rate Analysis</h3>
+                        <div id="survivalRateChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Costs & Risk Tab -->
+            <div id="costs" class="tab-pane">
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h3>Cost Breakdown by Airline</h3>
+                        <div id="costBreakdownChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Risk Analysis</h3>
+                        <div id="riskAnalysisChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Safety Rankings</h3>
+                        <div id="safetyRankingsChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Predictive Trends</h3>
+                        <div id="predictiveTrendChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights Tab -->
+            <div id="insights" class="tab-pane">
+                <div class="insights-container">
+                    <h3>AI-Powered Insights</h3>
+                    <div id="aiInsights" class="ai-insights-grid"></div>
+                </div>
+                <div class="chart-container-full">
+                    <h3>Anomaly Detection</h3>
+                    <div id="anomalyChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
