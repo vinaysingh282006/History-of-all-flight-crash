@@ -43,8 +43,47 @@ function generateSampleData() {
             summary: `Accident details for ${operator} flight in ${year}.`
         });
     }
-    return data;
+    return data.map((d, i) => normalizeCrashRecord({
+        Year: d.year,
+        Fatalities: d.fatalities,
+        Type: d.type,
+        Location: d.location,
+        Latitude: d.latitude,
+        Longitude: d.longitude,
+        Country: 'Unknown',
+        Date: d.date
+    }, i)).filter(Boolean);
 }
+function normalizeCrashRecord(raw, index) {
+    const year = Number(raw.Year);
+    const fatalities = Number(raw.Fatalities);
+
+    // Discard records without valid year or coordinates
+    if (!Number.isFinite(year)) return null;
+    if (!Number.isFinite(raw.Latitude) || !Number.isFinite(raw.Longitude)) return null;
+
+    const safeFatalities = Math.max(0, fatalities || 0);
+
+    return {
+        id: index,
+        year,
+        date: raw.Date || `${year}-01-01`,
+        fatalities: safeFatalities,
+        aboard: Math.max(safeFatalities + 1, raw.Aboard || safeFatalities + 1),
+        ground: Number(raw.Ground) || 0,
+        operator: raw.Operator || raw.Type || 'Unknown',
+        type: raw.Type || 'Unknown',
+        location: raw.Location || 'Unknown',
+        country: raw.Country || 'Unknown',
+        latitude: Number(raw.Latitude),
+        longitude: Number(raw.Longitude),
+        severityScore: Number(
+            Math.min(100, Math.log1p(safeFatalities) * 20).toFixed(2)
+        ),
+        summary: raw.Summary || `Crash in ${raw.Location || 'Unknown'}`
+    };
+}
+
 
 async function loadCrashData() {
     try {
@@ -53,37 +92,8 @@ async function loadCrashData() {
         const rawData = await response.json();
 
         return rawData
-            .filter(d => Number.isFinite(Number(d.Latitude)) && Number.isFinite(Number(d.Longitude)))
-            .map((d, index) => {
-                const fatalities = Number(d.Fatalities) || 0;
-
-                // Derive reasonable values for missing fields
-                const aboard = fatalities + Math.floor(Math.random() * 20);
-                const ground = 0;
-
-                // Simple derived severity score (kept consistent)
-                const severityScore = Math.min(
-                    100,
-                    Math.log1p(fatalities) * 20
-                );
-
-                return {
-                    id: index,
-                    year: Number(d.Year),
-                    date: d.Year ? `${d.Year}-01-01` : 'Unknown',
-                    fatalities,
-                    aboard,
-                    ground,
-                    operator: d.Type || 'Unknown',
-                    type: d.Type || 'Unknown',
-                    location: d.Location || 'Unknown',
-                    country: d.Country || 'Unknown',
-                    latitude: Number(d.Latitude),
-                    longitude: Number(d.Longitude),
-                    severityScore: Number(severityScore.toFixed(2)),
-                    summary: `Crash in ${d.Location}, ${d.Country}`
-                };
-            });
+    .map(normalizeCrashRecord)
+    .filter(Boolean);
     } catch (e) {
         throw e;
     }
@@ -112,8 +122,9 @@ function updateMetrics() {
     const totalRecords = AVIATION_DATA.length;
     const totalFatalities = AVIATION_DATA.reduce((sum, d) => sum + d.fatalities, 0);
     const avgSeverity = totalRecords > 0 ? AVIATION_DATA.reduce((sum, d) => sum + d.severityScore, 0) / totalRecords : 0;
-    const yearMin = Math.min(...AVIATION_DATA.map(d => d.year));
-    const yearMax = Math.max(...AVIATION_DATA.map(d => d.year));
+    const years = AVIATION_DATA.map(d => d.year);
+    const yearMin = years.length ? Math.min(...years) : 'N/A';
+    const yearMax = years.length ? Math.max(...years) : 'N/A';
 
     const metrics = [
         { label: 'Total Records', value: totalRecords.toLocaleString() },
