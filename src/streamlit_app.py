@@ -163,8 +163,19 @@ def load_data():
     return df
 
 def create_interactive_3d_globe(df, selected_year):
-    """Interactive 3D Globe with enhanced tooltips"""
+    """Interactive 3D Globe with enhanced tooltips
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_year (int): Selected year for filtering, or None for all years
+        
+    Returns:
+        plotly.graph_objects.Figure: 3D globe visualization
+    """
     filtered_df = df[df['year'] == selected_year] if selected_year else df
+    
+    # 🎨 Debug: Print globe creation info
+    print(f"🎨 Creating 3D globe for year: {selected_year}, records: {len(filtered_df)}")
     
     if len(filtered_df) == 0:
         return None
@@ -210,7 +221,17 @@ def create_interactive_3d_globe(df, selected_year):
     return fig
 
 def create_racing_sticks_animation(df):
-    """ULTRA-SMOOTH Racing Animation with enhanced tooltips"""
+    """ULTRA-SMOOTH Racing Animation with enhanced tooltips
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        
+    Returns:
+        plotly.graph_objects.Figure: Racing animation visualization
+    """
+    
+    # 🎨 Debug: Print animation creation info
+    print(f"🎨 Creating racing animation with {len(df)} records")
     
     # Prepare monthly data
     monthly_data = df.groupby(['year', 'month']).agg({
@@ -476,10 +497,21 @@ def create_racing_sticks_animation(df):
     return fig
 
 def create_crash_reasons_chart(df, selected_years=None):
-    """Pie chart for crash reasons with enhanced tooltips"""
+    """Pie chart for crash reasons with enhanced tooltips
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_years (tuple): Year range tuple (start, end) or None
+        
+    Returns:
+        plotly.graph_objects.Figure: Pie chart visualization
+    """
     filtered_df = df
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    # 🎨 Debug: Print reason chart creation info
+    print(f"🎨 Creating crash reasons chart for years: {selected_years}")
     
     reasons = []
     for summary in filtered_df['Summary'].fillna('Unknown'):
@@ -645,10 +677,21 @@ def create_multi_colored_stick_chart(df, selected_years=None):
     return fig
 
 def create_operator_crash_analysis(df, selected_years=None):
-    """Bar chart with enhanced tooltips"""
+    """Bar chart with enhanced tooltips
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_years (tuple): Year range tuple (start, end) or None
+        
+    Returns:
+        plotly.graph_objects.Figure: Bar chart visualization
+    """
     filtered_df = df
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    # 🎨 Debug: Print operator analysis creation info
+    print(f"🎨 Creating operator crash analysis for years: {selected_years}")
     
     # Get top 15 operators by crash count
     operator_counts = filtered_df['Operator'].value_counts().head(15)
@@ -716,10 +759,21 @@ def create_operator_crash_analysis(df, selected_years=None):
     return fig
 
 def create_aircraft_type_analysis(df, selected_years=None):
-    """Horizontal bar chart with enhanced tooltips"""
+    """Horizontal bar chart with enhanced tooltips
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_years (tuple): Year range tuple (start, end) or None
+        
+    Returns:
+        plotly.graph_objects.Figure: Horizontal bar chart visualization
+    """
     filtered_df = df
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    # 🎨 Debug: Print aircraft type analysis creation info
+    print(f"🎨 Creating aircraft type analysis for years: {selected_years}")
     
     # Get top 12 aircraft types
     aircraft_counts = filtered_df['Type'].value_counts().head(12)
@@ -785,10 +839,21 @@ def create_aircraft_type_analysis(df, selected_years=None):
     return fig
 
 def create_monthly_crash_pattern(df, selected_years=None):
-    """Line chart with enhanced tooltips"""
+    """Line chart with enhanced tooltips
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_years (tuple): Year range tuple (start, end) or None
+        
+    Returns:
+        plotly.graph_objects.Figure: Monthly pattern line chart
+    """
     filtered_df = df
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    # 🎨 Debug: Print monthly pattern creation info
+    print(f"🎨 Creating monthly crash pattern for years: {selected_years}")
     
     # Group by month
     monthly_crashes = filtered_df.groupby('month_name').size().reindex(
@@ -855,10 +920,21 @@ def create_monthly_crash_pattern(df, selected_years=None):
     return fig
 
 def create_fatality_trends_chart(df, selected_years=None):
-    """Line chart with enhanced tooltips"""
+    """Line chart with enhanced tooltips
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_years (tuple): Year range tuple (start, end) or None
+        
+    Returns:
+        plotly.graph_objects.Figure: Fatality trends line chart
+    """
     filtered_df = df
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    # 🎨 Debug: Print fatality trends creation info
+    print(f"🎨 Creating fatality trends chart for years: {selected_years}")
     
     yearly_data = filtered_df.groupby('year').agg({
         'Fatalities': 'sum',
@@ -909,10 +985,21 @@ def create_fatality_trends_chart(df, selected_years=None):
     return fig
 
 def create_timeline_chart(df, selected_years=None):
-    """Create an interactive timeline of major aviation incidents"""
+    """Create an interactive timeline of major aviation incidents
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_years (tuple): Year range tuple (start, end) or None
+        
+    Returns:
+        plotly.graph_objects.Figure: Timeline visualization
+    """
     filtered_df = df
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    # 🎨 Debug: Print timeline creation info
+    print(f"🎨 Creating timeline chart for years: {selected_years}")
     
     # Sort by date for timeline
     timeline_df = filtered_df.sort_values('Date').copy()
@@ -971,8 +1058,19 @@ def create_timeline_chart(df, selected_years=None):
     return fig
 
 def create_cost_analysis(df, selected_year=None):
-    """Cost analysis with enhanced tooltips"""
+    """Cost analysis with enhanced tooltips
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_year (int): Selected year or None for all years
+        
+    Returns:
+        tuple: (cost_fig, risk_fig) - Cost and risk analysis figures
+    """
     filtered_df = df if selected_year is None else df[df['year'] == selected_year]
+    
+    # 🎨 Debug: Print cost analysis creation info
+    print(f"🎨 Creating cost analysis for year: {selected_year}")
     
     if len(filtered_df) == 0:
         return None, None
@@ -1088,10 +1186,21 @@ def create_cost_analysis(df, selected_year=None):
     return cost_fig, risk_fig
 
 def create_day_of_week_analysis(df, selected_years=None):
-    """Day of week analysis with enhanced tooltips"""
+    """Day of week analysis with enhanced tooltips
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_years (tuple): Year range tuple (start, end) or None
+        
+    Returns:
+        tuple: (fig, day_stats) - Day of week analysis figure and statistics
+    """
     filtered_df = df
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    # 🎨 Debug: Print day of week analysis creation info
+    print(f"🎨 Creating day of week analysis for years: {selected_years}")
     
     # Group by day of week
     day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -1159,8 +1268,20 @@ def create_day_of_week_analysis(df, selected_years=None):
     return fig, day_stats
 
 
-def create_survival_analysis_chart(df, selected_years=None):
-    """Survival rate analysis with enhanced tooltips"""
+def create_day_of_week_survival_analysis(df, selected_years=None):
+    """Survival rate analysis by day of week with enhanced tooltips
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_years (tuple): Year range tuple (start, end) or None
+        
+    Returns:
+        tuple: (fig, day_stats) - Day of week survival analysis chart and statistics
+    """
+    
+    # 🎨 Debug: Print day of week survival analysis creation info
+    print(f"🎨 Creating day of week survival analysis for years: {selected_years}")
+    
     filtered_df = df
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
@@ -1240,11 +1361,22 @@ def create_survival_analysis_chart(df, selected_years=None):
     
     return fig, day_stats
 
-def create_survival_analysis_chart(df, selected_years=None):
-    """Survival rate analysis with enhanced tooltips"""
+def create_yearly_survival_analysis(df, selected_years=None):
+    """Survival rate analysis with enhanced tooltips
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_years (tuple): Year range tuple (start, end) or None
+        
+    Returns:
+        plotly.graph_objects.Figure: Survival rate analysis chart
+    """
     filtered_df = df
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    # 🎨 Debug: Print survival analysis creation info
+    print(f"🎨 Creating survival analysis chart for years: {selected_years}")
     
     # Group by year to calculate survival rates
     yearly_stats = filtered_df.groupby('year').agg({
@@ -1304,10 +1436,21 @@ def create_survival_analysis_chart(df, selected_years=None):
     return fig
 
 def create_seasonal_analysis(df, selected_years=None):
-    """Analyze crashes by season with enhanced tooltips"""
+    """Analyze crashes by season with enhanced tooltips
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_years (tuple): Year range tuple (start, end) or None
+        
+    Returns:
+        tuple: (fig, season_stats) - Seasonal analysis figure and statistics
+    """
     filtered_df = df
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    # 🎨 Debug: Print seasonal analysis creation info
+    print(f"🎨 Creating seasonal analysis for years: {selected_years}")
     
     season_order = ['Winter', 'Spring', 'Summer', 'Fall']
     season_stats = filtered_df.groupby('season').agg({
@@ -1374,13 +1517,23 @@ def create_seasonal_analysis(df, selected_years=None):
     return fig, season_stats
 
 def create_decade_comparison(df):
-    """Compare crashes across decades"""
+    """Compare crashes across decades
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        
+    Returns:
+        tuple: (fig, decade_stats) - Decade comparison chart and statistics
+    """
     decade_stats = df.groupby('decade').agg({
         'Date': 'count',
         'Fatalities': 'sum',
         'Aboard': 'sum'
     }).reset_index()
     decade_stats.columns = ['decade', 'crashes', 'fatalities', 'aboard']
+    
+    # 🎨 Debug: Print decade comparison creation info
+    print(f"🎨 Creating decade comparison with {len(decade_stats)} decades")
     
     decade_stats['avg_fatalities'] = decade_stats['fatalities'] / decade_stats['crashes']
     decade_stats['fatality_rate'] = (decade_stats['fatalities'] / decade_stats['aboard'] * 100).fillna(0)
@@ -1453,10 +1606,21 @@ def create_decade_comparison(df):
     return fig, decade_stats
 
 def create_correlation_heatmap(df, selected_years=None):
-    """Create correlation analysis between different factors"""
+    """Create correlation analysis between different factors
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        selected_years (tuple): Year range tuple (start, end) or None
+        
+    Returns:
+        tuple: (fig, corr_matrix) - Correlation heatmap and correlation matrix
+    """
     filtered_df = df
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
+    
+    # 🎨 Debug: Print correlation heatmap creation info
+    print(f"🎨 Creating correlation heatmap for years: {selected_years}")
     
     # Prepare data for correlation
     # Count crashes by year, month, day of week
@@ -1508,11 +1672,23 @@ def create_correlation_heatmap(df, selected_years=None):
     return fig, corr_matrix
 
 def calculate_safety_score(df, entity_name, entity_type='operator'):
-    """Calculate comprehensive safety score for airlines or aircraft types"""
+    """Calculate comprehensive safety score for airlines or aircraft types
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        entity_name (str): Name of the airline or aircraft type
+        entity_type (str): Type of entity ('operator' or 'aircraft')
+        
+    Returns:
+        dict: Safety score metrics and grade
+    """
     if entity_type == 'operator':
         entity_data = df[df['Operator'] == entity_name]
     else:
         entity_data = df[df['Type'] == entity_name]
+    
+    # 🎨 Debug: Print safety score calculation info
+    print(f"🎨 Calculating safety score for {entity_name} ({entity_type})")
     
     if len(entity_data) == 0:
         return None
@@ -1549,8 +1725,19 @@ def calculate_safety_score(df, entity_name, entity_type='operator'):
     }
 
 def predict_future_trends(df, years_ahead=5):
-    """Predict future crash trends using polynomial regression"""
+    """Predict future crash trends using polynomial regression
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        years_ahead (int): Number of years to predict into the future
+        
+    Returns:
+        tuple: (future_years, predictions, r2_score)
+    """
     yearly_data = df.groupby('year').size().reset_index(name='crashes')
+    
+    # 🎨 Debug: Print prediction info
+    print(f"🎨 Predicting trends for {years_ahead} years ahead")
     
     # Prepare data
     X = yearly_data['year'].values.reshape(-1, 1)
@@ -1573,12 +1760,22 @@ def predict_future_trends(df, years_ahead=5):
     return future_years.flatten(), predictions, model.score(X_poly, y)
 
 def detect_anomalies(df):
-    """Detect anomalous years with unusual crash patterns"""
+    """Detect anomalous years with unusual crash patterns
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        
+    Returns:
+        pandas.DataFrame: Anomalies detected in the data
+    """
     yearly_data = df.groupby('year').agg({
         'Date': 'count',
         'Fatalities': 'sum'
     }).reset_index()
     yearly_data.columns = ['year', 'crashes', 'fatalities']
+    
+    # 🎨 Debug: Print anomaly detection info
+    print(f"🎨 Detecting anomalies in {len(df)} records")
     
     # Extract values as numpy arrays
     crashes_values = yearly_data['crashes'].values.astype(float)
@@ -1611,8 +1808,18 @@ def detect_anomalies(df):
     return anomalies
 
 def generate_ai_insights(df):
-    """Generate data-driven insights and fun facts from the data"""
+    """Generate data-driven insights and fun facts from the data
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        
+    Returns:
+        list: List of insight dictionaries
+    """
     insights = []
+    
+    # 🎨 Debug: Print AI insights generation info
+    print(f"🎨 Generating AI insights from {len(df)} records")
     
     # Safest and most dangerous periods
     yearly_crashes = df.groupby('year').size()
@@ -1712,11 +1919,23 @@ def generate_ai_insights(df):
     return insights
 
 def create_safety_ranking_chart(df, entity_type='operator', top_n=15):
-    """Create safety ranking visualization"""
+    """Create safety ranking visualization
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        entity_type (str): Type of entity to rank ('operator' or 'aircraft')
+        top_n (int): Number of top entities to include
+        
+    Returns:
+        tuple: (fig, scores_df) - Safety ranking chart and scores
+    """
     if entity_type == 'operator':
         entities = df['Operator'].value_counts().head(top_n).index
     else:
         entities = df['Type'].value_counts().head(top_n).index
+    
+    # 🎨 Debug: Print safety ranking creation info
+    print(f"🎨 Creating safety rankings for {entity_type}, top {top_n}")
     
     scores = []
     for entity in entities:
@@ -1768,8 +1987,18 @@ def create_safety_ranking_chart(df, entity_type='operator', top_n=15):
     return fig, scores_df
 
 def create_prediction_chart(df):
-    """Create future trend prediction visualization"""
+    """Create future trend prediction visualization
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        
+    Returns:
+        tuple: (fig, future_years, predictions)
+    """
     future_years, predictions, r2_score = predict_future_trends(df, years_ahead=10)
+    
+    # 🎨 Debug: Print prediction chart creation info
+    print(f"🎨 Creating prediction chart with R² score: {r2_score:.3f}")
     
     # Historical data
     yearly_data = df.groupby('year').size().reset_index(name='crashes')
@@ -1822,13 +2051,23 @@ def create_prediction_chart(df):
     return fig, future_years, predictions
 
 def create_anomaly_chart(df):
-    """Visualize detected anomalies"""
+    """Visualize detected anomalies
+    
+    Args:
+        df (pandas.DataFrame): Flight data DataFrame
+        
+    Returns:
+        tuple: (fig, anomalies) - Anomaly visualization chart and anomaly data
+    """
     anomalies = detect_anomalies(df)
     yearly_data = df.groupby('year').agg({
         'Date': 'count',
         'Fatalities': 'sum'
     }).reset_index()
     yearly_data.columns = ['year', 'crashes', 'fatalities']
+    
+    # 🎨 Debug: Print anomaly chart creation info
+    print(f"🎨 Creating anomaly chart with {len(anomalies)} anomalies")
     
     fig = go.Figure()
     
@@ -1883,6 +2122,9 @@ def create_anomaly_chart(df):
     return fig, anomalies
 
 def main():
+    # 🎨 Debug: Print main function start
+    print("🎨 Starting aviation dashboard application")
+    
     df = load_data()
     
     st.markdown('<h1 class="tab-header">✈️ ULTIMATE Aviation Dashboard</h1>', unsafe_allow_html=True)
@@ -2144,7 +2386,7 @@ def main():
         
         with col_left:
             st.markdown("#### 📆 Day of Week Analysis")
-            day_fig, day_stats = create_survival_analysis_chart(df, stat_year_range)
+            day_fig, day_stats = create_day_of_week_survival_analysis(df, stat_year_range)
             st.plotly_chart(day_fig, use_container_width=True)
             
             # Show insights - manually find max/min instead of using idxmax/idxmin
@@ -2481,7 +2723,7 @@ def main():
             st.metric("👥 Total Survivors", f"{int(total_survived):,}")
             
         with col2:
-            survival_fig = create_survival_analysis_chart(df, surv_year_range)
+            survival_fig = create_yearly_survival_analysis(df, surv_year_range)
             st.plotly_chart(survival_fig, use_container_width=True)
             
         st.markdown("""
@@ -2491,6 +2733,20 @@ def main():
             An upward trend indicates improved safety measures, stronger aircraft construction, and better emergency protocols.</p>
         </div>
         """, unsafe_allow_html=True)
+
+def futureEnhancement():
+    """Placeholder for future enhancements
+    
+    This function serves as a placeholder for future features that
+    could be added to the application. Currently not implemented.
+    
+    TODO: Add advanced ML models for predictive analysis
+    TODO: Implement real-time data feeds
+    TODO: Add export functionality for custom reports
+    """
+    # 🎨 Future enhancement placeholder
+    print("🎨 Future enhancement placeholder executed")
+    pass
 
 if __name__ == "__main__":
     main()

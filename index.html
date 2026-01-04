@@ -1,385 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>BUDDHA – Aviation Crash Analytics Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- ====== LIBRARIES ====== -->
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- ====== GLOBAL STYLES ====== -->
-  <style>
-    * {
-      box-sizing: border-box;
-      scroll-behavior: smooth;
-    }
-
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: linear-gradient(135deg, #f8f9fe, #e8f4fd);
-      color: #2c3e50;
-    }
-
-    /* ===== NAVBAR ===== */
-    nav {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background: #2e86ab;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 28px;
-    }
-
-    nav .logo {
-      font-size: 20px;
-      font-weight: bold;
-      color: #ffffff;
-    }
-
-    nav ul {
-      list-style: none;
-      display: flex;
-      gap: 18px;
-      margin: 0;
-      padding: 0;
-    }
-
-    nav ul li a {
-      color: #ffffff;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    nav ul li a:hover {
-      text-decoration: underline;
-    }
-
-    /* ===== SECTION ===== */
-    section {
-      padding: 60px 40px;
-    }
-
-    .section-title {
-      font-size: 32px;
-      font-weight: 800;
-      color: #2e86ab;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-
-    /* ===== METRICS ===== */
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 24px;
-      margin-bottom: 40px;
-    }
-
-    .metric-card {
-      background: #ffffff;
-      border-radius: 20px;
-      padding: 24px;
-      text-align: center;
-      box-shadow: 0 8px 32px rgba(46, 134, 171, 0.15);
-      border: 2px solid #e3f2fd;
-    }
-
-    .metric-number {
-      font-size: 36px;
-      font-weight: 800;
-      color: #2e86ab;
-    }
-
-    .metric-label {
-      margin-top: 6px;
-      font-size: 15px;
-      color: #546e7a;
-    }
-
-    /* ===== CHART / MAP CONTAINERS ===== */
-    .card {
-      background: #ffffff;
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 40px;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-    }
-
-    #map {
-      height: 500px;
-      border-radius: 14px;
-    }
-
-    /* ===== FOOTER ===== */
-    footer {
-      background: #1f3b4d;
-      color: #ffffff;
-      padding: 40px 30px;
-    }
-
-    footer .footer-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 30px;
-    }
-
-    footer h4 {
-      margin-bottom: 10px;
-    }
-
-    footer p,
-    footer a {
-      font-size: 14px;
-      color: #dceef7;
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-
-    .copyright {
-      margin-top: 30px;
-      text-align: center;
-      font-size: 13px;
-      opacity: 0.8;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✈️ Aviation Crash Analytics Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 </head>
-
 <body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <h1 class="dashboard-title">✈️ Aviation Crash Analytics Dashboard</h1>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalRecords">0</div>
+                    <div class="stat-label">📊 Total Records</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalFatalities">0</div>
+                    <div class="stat-label">💀 Total Fatalities</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="yearRange">1908-2022</div>
+                    <div class="stat-label">📅 Year Range</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="airlineCount">0</div>
+                    <div class="stat-label">✈️ Airlines</div>
+                </div>
+            </div>
+        </header>
 
-<!-- ===== NAVBAR ===== -->
-<nav>
-  <div class="logo">✈️ BUDDHA Dashboard</div>
-  <ul>
-    <li><a href="#dashboard">Dashboard</a></li>
-    <li><a href="#globe">Globe</a></li>
-    <li><a href="#analytics">Analytics</a></li>
-    <li><a href="#timeline">Timeline</a></li>
-    <li><a href="#map-section">Map</a></li>
-    <li><a href="#export">Export</a></li>
-    <li><a href="#about">About</a></li>
-  </ul>
-</nav>
+        <!-- Filters -->
+        <div class="filters-container">
+            <div class="filter-group">
+                <label for="yearFilter">Year Range:</label>
+                <input type="range" id="yearFilter" min="1908" max="2022" value="2022" class="slider">
+                <span id="yearFilterValue">2022</span>
+            </div>
+            <div class="filter-group">
+                <label for="regionFilter">Region:</label>
+                <select id="regionFilter">
+                    <option value="all">All Regions</option>
+                    <option value="USA">USA</option>
+                    <option value="Europe">Europe</option>
+                    <option value="Asia">Asia</option>
+                    <option value="Africa">Africa</option>
+                    <option value="South America">South America</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="crashTypeFilter">Crash Type:</label>
+                <select id="crashTypeFilter">
+                    <option value="all">All Types</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Cargo">Cargo</option>
+                    <option value="Military">Military</option>
+                    <option value="Private">Private</option>
+                </select>
+            </div>
+        </div>
 
-<!-- ===== DASHBOARD ===== -->
-<section id="dashboard">
-  <div class="section-title">Aviation Crash Overview</div>
+        <!-- Tabs Navigation -->
+        <div class="tabs-container">
+            <button class="tab-button active" data-tab="overview">Overview</button>
+            <button class="tab-button" data-tab="globe">3D Globe</button>
+            <button class="tab-button" data-tab="trends">Trends</button>
+            <button class="tab-button" data-tab="analysis">Analysis</button>
+            <button class="tab-button" data-tab="costs">Costs & Risk</button>
+            <button class="tab-button" data-tab="insights">Insights</button>
+        </div>
 
-  <div class="metrics">
-    <div class="metric-card">
-      <div class="metric-number" id="totalCrashes">0</div>
-      <div class="metric-label">Total Crashes</div>
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-pane active">
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h3>Yearly Crash Trends</h3>
+                        <div id="yearlyTrendChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Fatality Trends</h3>
+                        <div id="fatalityTrendChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Crash Types Distribution</h3>
+                        <div id="typeDistributionChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Top Airlines by Crash Count</h3>
+                        <div id="airlineCrashChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Globe Tab -->
+            <div id="globe" class="tab-pane">
+                <div class="chart-container-full">
+                    <h3>Global Crash Distribution Map</h3>
+                    <div id="globeMap" style="height: 600px; width: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- Trends Tab -->
+            <div id="trends" class="tab-pane">
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h3>Monthly Crash Patterns</h3>
+                        <div id="monthlyPatternChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Seasonal Analysis</h3>
+                        <div id="seasonalChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Day of Week Analysis</h3>
+                        <div id="dayOfWeekChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Decade Comparison</h3>
+                        <div id="decadeChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Tab -->
+            <div id="analysis" class="tab-pane">
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h3>Crash Reasons</h3>
+                        <div id="crashReasonsChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Correlation Heatmap</h3>
+                        <div id="correlationHeatmap"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Aircraft Type Analysis</h3>
+                        <div id="aircraftTypeChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Survival Rate Analysis</h3>
+                        <div id="survivalRateChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Costs & Risk Tab -->
+            <div id="costs" class="tab-pane">
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h3>Cost Breakdown by Airline</h3>
+                        <div id="costBreakdownChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Risk Analysis</h3>
+                        <div id="riskAnalysisChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Safety Rankings</h3>
+                        <div id="safetyRankingsChart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Predictive Trends</h3>
+                        <div id="predictiveTrendChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights Tab -->
+            <div id="insights" class="tab-pane">
+                <div class="insights-container">
+                    <h3>AI-Powered Insights</h3>
+                    <div id="aiInsights" class="ai-insights-grid"></div>
+                </div>
+                <div class="chart-container-full">
+                    <h3>Anomaly Detection</h3>
+                    <div id="anomalyChart"></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="metric-card">
-      <div class="metric-number" id="totalFatalities">0</div>
-      <div class="metric-label">Total Fatalities</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-number" id="avgFatalities">0</div>
-      <div class="metric-label">Avg Fatalities / Crash</div>
-    </div>
-  </div>
-</section>
 
-<!-- ===== GLOBE ===== -->
-<section id="globe">
-  <div class="section-title">3D Crash Globe</div>
-  <div class="card">
-    <div id="globeChart" style="height:650px;"></div>
-  </div>
-</section>
-
-<!-- ===== ANALYTICS ===== -->
-<section id="analytics">
-  <div class="section-title">Analytics</div>
-  <div class="card">
-    <canvas id="decadeChart" height="140"></canvas>
-  </div>
-</section>
-
-<!-- ===== TIMELINE ===== -->
-<section id="timeline">
-  <div class="section-title">Crash Timeline</div>
-  <div class="card">
-    <canvas id="timelineChart" height="140"></canvas>
-  </div>
-</section>
-
-<!-- ===== MAP ===== -->
-<section id="map-section">
-  <div class="section-title">Crash Locations Map</div>
-  <div class="card">
-    <div id="map"></div>
-  </div>
-</section>
-
-<!-- ===== EXPORT ===== -->
-<section id="export">
-  <div class="section-title">Export</div>
-  <div class="card">
-    <button onclick="exportJSON()">Export JSON</button>
-    <button onclick="exportCSV()">Export CSV</button>
-  </div>
-</section>
-
-<!-- ===== ABOUT ===== -->
-<section id="about">
-  <div class="section-title">About Project</div>
-  <div class="card">
-    <p>
-      BUDDHA – Aviation Crash Analytics Dashboard is a data-driven visualization
-      platform to analyze global aviation accidents using interactive charts,
-      maps, and timelines.
-    </p>
-  </div>
-</section>
-
-<!-- ===== FOOTER ===== -->
-<footer>
-  <div class="footer-grid">
-    <div>
-      <h4>BUDDHA Project</h4>
-      <p>Aviation Crash Analytics Dashboard</p>
-    </div>
-    <div>
-      <h4>Tech Stack</h4>
-      <p>Python · FastAPI · Plotly · Chart.js · Leaflet · JavaScript</p>
-    </div>
-    <div>
-      <h4>Links</h4>
-      <a href="#">GitHub</a><br />
-      <a href="#">Documentation</a>
-    </div>
-  </div>
-
-  <div class="copyright">
-    © 2026 BUDDHA Project. All rights reserved.
-  </div>
-</footer>
-
-<!-- ===== JAVASCRIPT ===== -->
-<script>
-  const API_BASE = "http://127.0.0.1:8000";
-
-  let crashData = [];
-
-  async function loadStats() {
-    const res = await fetch(API_BASE + "/stats");
-    const data = await res.json();
-
-    document.getElementById("totalCrashes").innerText = data.total_crashes;
-    document.getElementById("totalFatalities").innerText = data.total_fatalities;
-    document.getElementById("avgFatalities").innerText =
-      data.avg_fatalities.toFixed(1);
-  }
-
-  async function loadData() {
-    const res = await fetch(API_BASE + "/data");
-    crashData = await res.json();
-
-    renderGlobe(crashData);
-    renderCharts(crashData);
-    renderMap(crashData);
-  }
-
-  function renderGlobe(data) {
-    const fig = {
-      data: [
-        {
-          type: "scattergeo",
-          lon: data.map(d => d.longitude),
-          lat: data.map(d => d.latitude),
-          text: data.map(d => d.Location),
-          mode: "markers",
-          marker: {
-            size: data.map(d => Math.log1p(d.Fatalities) * 2 + 5),
-            color: data.map(d => d.Fatalities),
-            colorscale: "Reds",
-            opacity: 0.8
-          }
-        }
-      ],
-      layout: {
-        geo: { projection: { type: "orthographic" } },
-        margin: { t: 0, b: 0 }
-      }
-    };
-
-    Plotly.newPlot("globeChart", fig);
-  }
-
-  function renderCharts(data) {
-    const byDecade = {};
-    data.forEach(d => {
-      const dec = Math.floor(d.year / 10) * 10;
-      byDecade[dec] = (byDecade[dec] || 0) + 1;
-    });
-
-    new Chart(document.getElementById("decadeChart"), {
-      type: "bar",
-      data: {
-        labels: Object.keys(byDecade),
-        datasets: [{
-          label: "Crashes per Decade",
-          data: Object.values(byDecade),
-          backgroundColor: "#2e86ab"
-        }]
-      }
-    });
-  }
-
-  function renderMap(data) {
-    const map = L.map("map").setView([20, 0], 2);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-
-    data.forEach(d => {
-      if (d.latitude && d.longitude) {
-        L.circleMarker([d.latitude, d.longitude], {
-          radius: 6,
-          color: "red"
-        }).addTo(map).bindPopup(d.Location);
-      }
-    });
-  }
-
-  function exportJSON() {
-    const blob = new Blob([JSON.stringify(crashData, null, 2)], {
-      type: "application/json"
-    });
-    download(blob, "crashes.json");
-  }
-
-  function exportCSV() {
-    let csv = "Location,Year,Fatalities\n";
-    crashData.forEach(d => {
-      csv += `${d.Location},${d.year},${d.Fatalities}\n`;
-    });
-    download(new Blob([csv], { type: "text/csv" }), "crashes.csv");
-  }
-
-  function download(blob, filename) {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.click();
-  }
-
-  loadStats();
-  loadData();
-</script>
-
+    <script src="dashboard.js"></script>
 </body>
 </html>
