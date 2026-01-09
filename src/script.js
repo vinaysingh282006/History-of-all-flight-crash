@@ -1,24 +1,49 @@
-let map = L.map("map").setView([20, 0], 2);
+/* =========================================================
+   MAP SETUP
+========================================================= */
+
+const map = L.map("map").setView([20, 0], 2);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 18,
   attribution: "&copy; OpenStreetMap contributors",
 }).addTo(map);
 
-let markers = L.markerClusterGroup({
+const markers = L.markerClusterGroup({
   spiderfyOnMaxZoom: true,
   showCoverageOnHover: false,
   zoomToBoundsOnClick: true,
   maxClusterRadius: 80,
 });
 
+
+
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+
 let crashData = [];
-let chart;
-let timelineChart;
-let operatorChart;
+
+let chart = null;
+let timelineChart = null;
+let operatorChart = null;
+
+const weatherCache = new Map();
+
+
+
+/* =========================================================
+   ERROR HANDLING
+========================================================= */
 
 window.addEventListener("error", (e) => console.error(e.message));
 window.addEventListener("unhandledrejection", (e) => console.error(e.reason));
+
+
+
+/* =========================================================
+   DATA NORMALIZATION
+========================================================= */
 
 function normalizeCrashData(data) {
   return data.map((c) => ({
@@ -33,80 +58,125 @@ function normalizeCrashData(data) {
   }));
 }
 
+
+
+/* =========================================================
+   DATA LOADING
+========================================================= */
+
 async function loadData() {
   try {
     const res = await fetch("data/crashes.json");
+
     if (!res.ok) throw new Error(res.statusText);
-    crashData = normalizeCrashData(await res.json());
+
+    const raw = await res.json();
+
+    crashData = normalizeCrashData(raw);
+
     renderMarkers(crashData);
     updateAnalytics(crashData);
     updateTimeline(crashData);
+
   } catch (e) {
     const stats = document.getElementById("stats");
     if (stats) stats.innerHTML = `<p style="color:red">${e.message}</p>`;
   }
 }
 
+
+
+/* =========================================================
+   MAP MARKERS
+========================================================= */
+
 function renderMarkers(data) {
   markers.clearLayers();
-  data.forEach((crash) => {
-    if (crash.Latitude && crash.Longitude) {
-      let color = "green";
-      if (crash.Fatalities > 50) color = "red";
-      else if (crash.Fatalities > 10) color = "orange";
-      else if (crash.Fatalities > 0) color = "yellow";
 
-      const marker = L.circleMarker([crash.Latitude, crash.Longitude], {
-        radius: Math.max(5, Math.min(15, crash.Fatalities / 10)),
-        fillColor: color,
-        color: "#000",
-        weight: 1,
-        fillOpacity: 0.7,
-      }).bindPopup(`
+  data.forEach((crash) => {
+    if (!crash.Latitude || !crash.Longitude) return;
+
+    let color = "green";
+    if (crash.Fatalities > 50) color = "red";
+    else if (crash.Fatalities > 10) color = "orange";
+    else if (crash.Fatalities > 0) color = "yellow";
+
+    const id = `${crash.Year}-${crash.Location.replace(/\s+/g, "-")}`;
+
+    const marker = L.circleMarker([crash.Latitude, crash.Longitude], {
+      radius: Math.max(5, Math.min(15, crash.Fatalities / 10)),
+      fillColor: color,
+      color: "#000",
+      weight: 1,
+      fillOpacity: 0.7,
+    }).bindPopup(`
         <b>${crash.Location}</b><br>
         Year: ${crash.Year}<br>
         Type: ${crash.Type}<br>
         Fatalities: ${crash.Fatalities}<br>
         Country: ${crash.Country}<br>
-        <div id="weather-${crash.Year}-${crash.Location.replace(/\s+/g, "-")}">Loading...</div>
-        <button onclick="fetchWeather(${crash.Latitude},${crash.Longitude},'${crash.Year}','${crash.Location.replace(/\s+/g, "-")}')">Load Weather</button>
-      `);
+        <div id="weather-${id}">Loading...</div>
+        <button onclick="fetchWeather(${crash.Latitude}, ${crash.Longitude}, '${id}')">
+          Load Weather
+        </button>
+    `);
 
-      markers.addLayer(marker);
-    }
+    markers.addLayer(marker);
   });
+
   map.addLayer(markers);
 }
 
-const weatherCache = new Map();
 
-async function fetchWeather(lat, lon, year, id) {
+
+/* =========================================================
+   WEATHER HANDLING
+========================================================= */
+
+async function fetchWeather(lat, lon, id) {
   const key = `${lat}_${lon}`;
+
   if (weatherCache.has(key)) {
-    document.getElementById(`weather-${year}-${id}`).innerHTML = weatherCache.get(key);
+    document.getElementById(`weather-${id}`).innerHTML = weatherCache.get(key);
     return;
   }
+
   try {
-    const res = await fetch(`${WEATHER_API_URL}?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric`);
+    const res = await fetch(
+      `${WEATHER_API_URL}?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric`
+    );
+
     if (!res.ok) throw new Error(res.statusText);
+
     const w = await res.json();
+
     const html = `
       Temp: ${w.main.temp}°C<br>
       Humidity: ${w.main.humidity}%<br>
       Wind: ${w.wind.speed} m/s
     `;
+
     weatherCache.set(key, html);
-    document.getElementById(`weather-${year}-${id}`).innerHTML = html;
-  } catch (e) {
-    document.getElementById(`weather-${year}-${id}`).innerHTML = "Weather unavailable";
+    document.getElementById(`weather-${id}`).innerHTML = html;
+
+  } catch {
+    document.getElementById(`weather-${id}`).innerHTML = "Weather unavailable";
   }
 }
 
+
+
+/* =========================================================
+   ANALYTICS
+========================================================= */
+
 function updateAnalytics(data) {
+  const totalFatalities = data.reduce((s, d) => s + d.Fatalities, 0);
+
   document.getElementById("count").textContent = data.length;
-  document.getElementById("fatalities").textContent = data.reduce((s, d) => s + d.Fatalities, 0);
+  document.getElementById("fatalities").textContent = totalFatalities;
   document.getElementById("avg").textContent = data.length
-    ? (data.reduce((s, d) => s + d.Fatalities, 0) / data.length).toFixed(1)
+    ? (totalFatalities / data.length).toFixed(1)
     : 0;
 
   const decade = {};
@@ -116,6 +186,7 @@ function updateAnalytics(data) {
   });
 
   if (chart) chart.destroy();
+
   chart = new Chart(document.getElementById("chart"), {
     type: "bar",
     data: {
@@ -128,8 +199,15 @@ function updateAnalytics(data) {
   updateOperatorAnalysis(data);
 }
 
+
+
+/* =========================================================
+   OPERATOR / TYPE ANALYSIS
+========================================================= */
+
 function updateOperatorAnalysis(data) {
   const grouped = {};
+
   data.forEach((d) => {
     grouped[d.Type] = grouped[d.Type] || { c: 0, f: 0 };
     grouped[d.Type].c++;
@@ -137,6 +215,7 @@ function updateOperatorAnalysis(data) {
   });
 
   const top = Object.entries(grouped).slice(0, 8);
+
   if (operatorChart) operatorChart.destroy();
 
   operatorChart = new Chart(document.getElementById("operator-chart"), {
@@ -152,11 +231,21 @@ function updateOperatorAnalysis(data) {
   });
 }
 
+
+
+/* =========================================================
+   TIMELINE
+========================================================= */
+
 function updateTimeline(data) {
   const yearly = {};
-  data.forEach((d) => (yearly[d.Year] = (yearly[d.Year] || 0) + 1));
+
+  data.forEach((d) => {
+    yearly[d.Year] = (yearly[d.Year] || 0) + 1;
+  });
 
   if (timelineChart) timelineChart.destroy();
+
   timelineChart = new Chart(document.getElementById("timeline-chart"), {
     type: "line",
     data: {
@@ -167,7 +256,14 @@ function updateTimeline(data) {
   });
 }
 
-let filterTimeout;
+
+
+/* =========================================================
+   FILTERING
+========================================================= */
+
+let filterTimeout = null;
+
 function applyFiltersDebounced() {
   clearTimeout(filterTimeout);
   filterTimeout = setTimeout(applyFilters, 250);
@@ -194,11 +290,26 @@ function applyFilters() {
   updateTimeline(filtered);
 }
 
-document.getElementById("applyFilter").addEventListener("click", applyFiltersDebounced);
-document.getElementById("resetFilter").addEventListener("click", () => {
-  renderMarkers(crashData);
-  updateAnalytics(crashData);
-  updateTimeline(crashData);
-});
+
+
+/* =========================================================
+   EVENTS
+========================================================= */
+
+document.getElementById("applyFilter")
+  .addEventListener("click", applyFiltersDebounced);
+
+document.getElementById("resetFilter")
+  .addEventListener("click", () => {
+    renderMarkers(crashData);
+    updateAnalytics(crashData);
+    updateTimeline(crashData);
+  });
+
+
+
+/* =========================================================
+   INIT
+========================================================= */
 
 loadData();
