@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -17,48 +18,125 @@ COLORS = {
     "light_bg": "#F8F9FE", "card_bg": "#FFFFFF", "text": "#2C3E50"
 }
 
-st.set_page_config(page_title="✈️ Beautiful Aviation Dashboard", layout="wide")
+st.set_page_config(page_title=" Beautiful Aviation Dashboard", layout="wide")
 
 # Light Theme CSS
-st.markdown("""
+# Theme State Initialization
+if 'theme' not in st.session_state:
+    st.session_state.theme = 'light'
+
+def toggle_theme():
+    st.session_state.theme = 'dark' if st.session_state.theme == 'light' else 'light'
+
+# Theme CSS Variables
+light_theme = {
+    "bg_gradient": "linear-gradient(135deg, #F8F9FE 0%, #E8F4FD 100%)",
+    "text_primary": "#2E86AB",
+    "text_secondary": "#546E7A",
+    "card_bg": "linear-gradient(145deg, #FFFFFF 0%, #F1F8FF 100%)",
+    "card_border": "#E3F2FD",
+    "card_shadow": "0 8px 32px rgba(46, 134, 171, 0.15)",
+    "tab_bg": "#FFFFFF",
+    "tab_text": "#2E86AB"
+}
+
+# Dark theme with original text colors as requested
+dark_theme = {
+    "bg_gradient": "linear-gradient(135deg, #1e1e2f 0%, #2a2a40 100%)",
+    "text_primary": "#2E86AB",  # Preserving original color
+    "text_secondary": "#546E7A", # Preserving original color
+    "card_bg": "linear-gradient(145deg, #252535 0%, #2a2a40 100%)",
+    "card_border": "#3e3e50",
+    "card_shadow": "0 8px 32px rgba(0, 0, 0, 0.3)",
+    "tab_bg": "#252535",
+    "tab_text": "#2E86AB"      # Preserving original color
+}
+
+current_theme = light_theme if st.session_state.theme == 'light' else dark_theme
+btn_icon = "🌞" if st.session_state.theme == 'light' else "🌙"
+
+# Top Toggle Button - Right Aligned, Icon Only
+col_empty, col_toggle = st.columns([9, 1])
+with col_toggle:
+    st.button(btn_icon, on_click=toggle_theme, key="theme_toggle")
+
+# Dynamic CSS Injection
+st.markdown(f"""
 <style>
-    .main { 
-        background: linear-gradient(135deg, #F8F9FE 0%, #E8F4FD 100%); 
+    /* Smooth Transition for all affected properties */
+    * {{
+        transition: background 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+    }}
+
+    .stApp {{
+        background: {current_theme['bg_gradient']};
+    }}
+    
+    .main {{ 
+        background: transparent;
         font-family: 'Segoe UI', sans-serif; 
-    }
-    .tab-header { 
-        font-size: 3.5rem; font-weight: bold; text-align: center; 
-        color: #2E86AB; margin: 2rem 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    }
-    .metric-card {
-        background: linear-gradient(145deg, #FFFFFF 0%, #F1F8FF 100%);
-        padding: 2.5rem; border-radius: 25px; text-align: center; 
-        margin: 1rem 0; border: 2px solid #E3F2FD;
-        box-shadow: 0 8px 32px rgba(46, 134, 171, 0.15);
-    }
-    .metric-number {
-        font-size: 2.8rem; font-weight: bold; color: #2E86AB;
-    }
-    .metric-label {
-        font-size: 1.2rem; color: #546E7A; margin-top: 0.5rem;
-    }
-    .crash-details {
-        background: #FFFFFF; padding: 1.5rem; border-radius: 15px;
-        border: 2px solid #E3F2FD; margin: 1rem 0;
-        box-shadow: 0 4px 16px rgba(46, 134, 171, 0.1);
-    }
-    .stTabs [data-baseweb="tab-list"] {
+    }}
+    
+    h1, h2, h3, h4, h5, h6, p, li, span, div {{
+        color: {current_theme['text_secondary']};
+    }}
+
+    .tab-header {{ 
+        font-size: 3.5rem; 
+        font-weight: bold; 
+        text-align: center; 
+        color: {current_theme['text_primary']} !important; 
+        margin: 2rem 0; 
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }}
+    
+    .metric-card, .crash-details, .stCard {{
+        background: {current_theme['card_bg']} !important;
+        padding: 2.5rem; 
+        border-radius: 25px; 
+        text-align: center; 
+        margin: 1rem 0; 
+        border: 2px solid {current_theme['card_border']} !important;
+        box-shadow: {current_theme['card_shadow']} !important;
+    }}
+    
+    .metric-number {{
+        font-size: 2.8rem; 
+        font-weight: bold; 
+        color: {current_theme['text_primary']} !important;
+    }}
+    
+    .metric-label {{
+        font-size: 1.2rem; 
+        color: {current_theme['text_secondary']} !important; 
+        margin-top: 0.5rem;
+    }}
+    
+    /* Streamlit Tab Overrides */
+    .stTabs [data-baseweb='tab-list'] {{
         gap: 24px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 60px; padding: 0px 24px;
-        background-color: #FFFFFF; border-radius: 15px;
-        border: 2px solid #E3F2FD; color: #2E86AB;
-        font-size: 18px; font-weight: bold;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #2E86AB; color: white;
-    }
+    }}
+    
+    .stTabs [data-baseweb='tab'] {{
+        height: 60px; 
+        padding: 0px 24px; 
+        background-color: {current_theme['tab_bg']}; 
+        border-radius: 15px; 
+        border: 2px solid {current_theme['card_border']}; 
+        color: {current_theme['tab_text']}; 
+        font-size: 18px; 
+        font-weight: bold;
+    }}
+    
+    .stTabs [aria-selected='true'] {{
+        background-color: {current_theme['text_primary']}; 
+        color: white !important;
+    }}
+
+    /* Global Text Overrides for compatibility */
+    .stMarkdown, .stText {{
+        color: {current_theme['text_secondary']};
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -81,23 +159,23 @@ def load_data():
         try:
             if os.path.exists(path):
                 df = pd.read_csv(path, encoding="utf-8")
-                print(f"✅ Successfully loaded data from: {path}")
+                print(f" Successfully loaded data from: {path}")
                 break
         except UnicodeDecodeError:
             try:
                 df = pd.read_csv(path, encoding="latin1")
-                print(f"✅ Successfully loaded data from: {path} with latin1 encoding")
+                print(f" Successfully loaded data from: {path} with latin1 encoding")
                 break
             except:
                 continue
         except Exception as e:
-            print(f"⚠️ Failed to load from {path}: {str(e)}")
+            print(f" Failed to load from {path}: {str(e)}")
             continue
     
     if df is None:
         # If no file found, create a minimal example dataset for demo purposes
-        st.error("❌ No dataset found! Please ensure dataset file exists in the data/ directory.")
-        st.info("💡 Tip: Place your dataset file as 'data/dataset.csv.csv' or 'data/dataset.csv'")
+        st.error(" No dataset found! Please ensure dataset file exists in the data/ directory.")
+        st.info(" Tip: Place your dataset file as 'data/dataset.csv.csv' or 'data/dataset.csv'")
         
         # Create minimal example dataset
         df = pd.DataFrame({
@@ -112,7 +190,7 @@ def load_data():
         })
         
         # Show warning about demo data
-        st.warning("⚠️ Using demo data. The dashboard will work but with limited functionality.")
+        st.warning(" Using demo data. The dashboard will work but with limited functionality.")
     
     # Process the data (same as before)
     df.columns = [c.strip() for c in df.columns]
@@ -174,8 +252,8 @@ def create_interactive_3d_globe(df, selected_year):
     """
     filtered_df = df[df['year'] == selected_year] if selected_year else df
     
-    # 🎨 Debug: Print globe creation info
-    print(f"🎨 Creating 3D globe for year: {selected_year}, records: {len(filtered_df)}")
+    #  Debug: Print globe creation info
+    print(f" Creating 3D globe for year: {selected_year}, records: {len(filtered_df)}")
     
     if len(filtered_df) == 0:
         return None
@@ -185,14 +263,14 @@ def create_interactive_3d_globe(df, selected_year):
     for _, row in filtered_df.iterrows():
         survival_rate = ((row['Aboard'] - row['Fatalities']) / row['Aboard'] * 100) if row['Aboard'] > 0 else 0
         hover_text = (
-            f"<b>🛫 {row['Operator']}</b><br>"
-            f"<b>📅 Date:</b> {row['Date'].strftime('%B %d, %Y')}<br>"
-            f"<b>📍 Location:</b> {row['Location']}<br>"
-            f"<b>✈️ Aircraft:</b> {row['Type']}<br>"
-            f"<b>💀 Fatalities:</b> {int(row['Fatalities'])} / {int(row['Aboard'])} aboard<br>"
-            f"<b>📊 Survival Rate:</b> {survival_rate:.1f}%<br>"
-            f"<b>🌍 Ground Casualties:</b> {int(row['Ground'])}<br>"
-            f"<b>📝 Summary:</b> {row['Summary'][:100]}..."
+            f"<b> {row['Operator']}</b><br>"
+            f"<b> Date:</b> {row['Date'].strftime('%B %d, %Y')}<br>"
+            f"<b> Location:</b> {row['Location']}<br>"
+            f"<b> Aircraft:</b> {row['Type']}<br>"
+            f"<b> Fatalities:</b> {int(row['Fatalities'])} / {int(row['Aboard'])} aboard<br>"
+            f"<b> Survival Rate:</b> {survival_rate:.1f}%<br>"
+            f"<b> Ground Casualties:</b> {int(row['Ground'])}<br>"
+            f"<b> Summary:</b> {row['Summary'][:100]}..."
         )
         hover_texts.append(hover_text)
     
@@ -213,7 +291,7 @@ def create_interactive_3d_globe(df, selected_year):
     fig.update_geos(projection_type="orthographic", showcountries=True)
     fig.update_layout(
         title=dict(
-            text=f"🌍 3D Globe - {len(filtered_df):,} Crashes" + (f" ({selected_year})" if selected_year else ""),
+            text=f" 3D Globe - {len(filtered_df):,} Crashes" + (f" ({selected_year})" if selected_year else ""),
             font=dict(size=24, color=COLORS['text'])
         ),
         height=650, paper_bgcolor='white', font=dict(color=COLORS['text'], size=16)
@@ -230,8 +308,8 @@ def create_racing_sticks_animation(df):
         plotly.graph_objects.Figure: Racing animation visualization
     """
     
-    # 🎨 Debug: Print animation creation info
-    print(f"🎨 Creating racing animation with {len(df)} records")
+    #  Debug: Print animation creation info
+    print(f" Creating racing animation with {len(df)} records")
     
     # Prepare monthly data
     monthly_data = df.groupby(['year', 'month']).agg({
@@ -273,15 +351,15 @@ def create_racing_sticks_animation(df):
             
             # Enhanced hover text
             crash_hover[month_idx] = (
-                f"<b>📅 {row['month_name']} {end_year}</b><br>"
-                f"<b>✈️ Total Crashes:</b> {int(row['crashes'])}<br>"
-                f"<b>📊 Monthly Rank:</b> #{sorted(crash_data, reverse=True).index(row['crashes']) + 1 if row['crashes'] > 0 else 'N/A'}"
+                f"<b> {row['month_name']} {end_year}</b><br>"
+                f"<b> Total Crashes:</b> {int(row['crashes'])}<br>"
+                f"<b> Monthly Rank:</b> #{sorted(crash_data, reverse=True).index(row['crashes']) + 1 if row['crashes'] > 0 else 'N/A'}"
             )
             
             fatality_hover[month_idx] = (
-                f"<b>📅 {row['month_name']} {end_year}</b><br>"
-                f"<b>💀 Total Fatalities:</b> {int(row['fatalities'])}<br>"
-                f"<b>📈 Avg per Crash:</b> {row['fatalities']/row['crashes']:.1f}" if row['crashes'] > 0 else ""
+                f"<b> {row['month_name']} {end_year}</b><br>"
+                f"<b> Total Fatalities:</b> {int(row['fatalities'])}<br>"
+                f"<b> Avg per Crash:</b> {row['fatalities']/row['crashes']:.1f}" if row['crashes'] > 0 else ""
             )
         
         frame = go.Frame(
@@ -340,15 +418,15 @@ def create_racing_sticks_animation(df):
         initial_fatalities[month_idx] = row['fatalities'] * scale_factor
         
         initial_crash_hover[month_idx] = (
-            f"<b>📅 {row['month_name']} {initial_year}</b><br>"
-            f"<b>✈️ Total Crashes:</b> {int(row['crashes'])}<br>"
-            f"<b>📊 Monthly Rank:</b> #{sorted(initial_crashes, reverse=True).index(row['crashes']) + 1 if row['crashes'] > 0 else 'N/A'}"
+            f"<b> {row['month_name']} {initial_year}</b><br>"
+            f"<b> Total Crashes:</b> {int(row['crashes'])}<br>"
+            f"<b> Monthly Rank:</b> #{sorted(initial_crashes, reverse=True).index(row['crashes']) + 1 if row['crashes'] > 0 else 'N/A'}"
         )
         
         initial_fatality_hover[month_idx] = (
-            f"<b>📅 {row['month_name']} {initial_year}</b><br>"
-            f"<b>💀 Total Fatalities:</b> {int(row['fatalities'])}<br>"
-            f"<b>📈 Avg per Crash:</b> {row['fatalities']/row['crashes']:.1f}" if row['crashes'] > 0 else ""
+            f"<b> {row['month_name']} {initial_year}</b><br>"
+            f"<b> Total Fatalities:</b> {int(row['fatalities'])}<br>"
+            f"<b> Avg per Crash:</b> {row['fatalities']/row['crashes']:.1f}" if row['crashes'] > 0 else ""
         )
     
     # Add initial traces
@@ -389,7 +467,7 @@ def create_racing_sticks_animation(df):
     # Update layout
     fig.update_layout(
         title={
-            'text': "🏁 ULTRA-SMOOTH RACING STICKS (Purple vs Blue)",
+            'text': " ULTRA-SMOOTH RACING STICKS (Purple vs Blue)",
             'font': {'size': 32, 'color': COLORS['text'], 'family': 'Arial Black'},
             'x': 0.5
         },
@@ -412,7 +490,7 @@ def create_racing_sticks_animation(df):
         margin={'l': 80, 'r': 80, 't': 120, 'b': 80},
         annotations=[
             {
-                'text': "🟣 Purple = Crashes | 🔵 Blue = Fatalities (scaled) | Both bars race smoothly up & down!",
+                'text': " Purple = Crashes |  Blue = Fatalities (scaled) | Both bars race smoothly up & down!",
                 'showarrow': False,
                 'xref': "paper", 'yref': "paper",
                 'x': 0.5, 'y': -0.12,
@@ -425,7 +503,7 @@ def create_racing_sticks_animation(df):
                 'type': 'buttons',
                 'buttons': [
                     {
-                        'label': '🏁 RACE FAST (0.8s)',
+                        'label': ' RACE FAST (0.8s)',
                         'method': 'animate',
                         'args': [None, {
                             'frame': {'duration': 800, 'redraw': True},
@@ -433,7 +511,7 @@ def create_racing_sticks_animation(df):
                         }]
                     },
                     {
-                        'label': '🏃 RACE NORMAL (2s)',
+                        'label': ' RACE NORMAL (2s)',
                         'method': 'animate',
                         'args': [None, {
                             'frame': {'duration': 2000, 'redraw': True},
@@ -441,7 +519,7 @@ def create_racing_sticks_animation(df):
                         }]
                     },
                     {
-                        'label': '🚶 RACE SLOW (4s)',
+                        'label': ' RACE SLOW (4s)',
                         'method': 'animate',
                         'args': [None, {
                             'frame': {'duration': 4000, 'redraw': True},
@@ -449,7 +527,7 @@ def create_racing_sticks_animation(df):
                         }]
                     },
                     {
-                        'label': '⏸️ PAUSE',
+                        'label': ' PAUSE',
                         'method': 'animate',
                         'args': [[None]]
                     }
@@ -481,7 +559,7 @@ def create_racing_sticks_animation(df):
                 'active': 0,
                 'currentvalue': {
                     'font': {'size': 18, 'color': COLORS['text']},
-                    'prefix': '🏁 Racing Year: ',
+                    'prefix': ' Racing Year: ',
                     'visible': True,
                     'xanchor': 'center'
                 },
@@ -510,8 +588,8 @@ def create_crash_reasons_chart(df, selected_years=None):
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
     
-    # 🎨 Debug: Print reason chart creation info
-    print(f"🎨 Creating crash reasons chart for years: {selected_years}")
+    #  Debug: Print reason chart creation info
+    print(f" Creating crash reasons chart for years: {selected_years}")
     
     reasons = []
     for summary in filtered_df['Summary'].fillna('Unknown'):
@@ -556,7 +634,7 @@ def create_crash_reasons_chart(df, selected_years=None):
     year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
     fig.update_layout(
         title=dict(
-            text=f"🎯 Crash Reasons{year_text}",
+            text=f" Crash Reasons{year_text}",
             font=dict(size=24, color=COLORS['text'])
         ),
         height=600,
@@ -619,10 +697,10 @@ def create_multi_colored_stick_chart(df, selected_years=None):
         
         # Enhanced hover text
         hover_texts = [
-            f"<b>📅 Year:</b> {year}<br>"
-            f"<b>🎯 Reason:</b> {reason}<br>"
-            f"<b>✈️ Crashes:</b> {val}<br>"
-            f"<b>📊 % of Year:</b> {val/sum([yearly_reasons[(yearly_reasons['year']==year)]['count'].sum()])*100:.1f}%"
+            f"<b> Year:</b> {year}<br>"
+            f"<b> Reason:</b> {reason}<br>"
+            f"<b> Crashes:</b> {val}<br>"
+            f"<b> % of Year:</b> {val/sum([yearly_reasons[(yearly_reasons['year']==year)]['count'].sum()])*100:.1f}%"
             if val > 0 else ""
             for year, val in zip(years, y_values)
         ]
@@ -646,7 +724,7 @@ def create_multi_colored_stick_chart(df, selected_years=None):
     year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
     fig.update_layout(
         title=dict(
-            text=f"📊 Multi-Colored Stick Chart - Crash Reasons by Year{year_text}",
+            text=f" Multi-Colored Stick Chart - Crash Reasons by Year{year_text}",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -690,8 +768,8 @@ def create_operator_crash_analysis(df, selected_years=None):
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
     
-    # 🎨 Debug: Print operator analysis creation info
-    print(f"🎨 Creating operator crash analysis for years: {selected_years}")
+    #  Debug: Print operator analysis creation info
+    print(f" Creating operator crash analysis for years: {selected_years}")
     
     # Get top 15 operators by crash count
     operator_counts = filtered_df['Operator'].value_counts().head(15)
@@ -712,7 +790,7 @@ def create_operator_crash_analysis(df, selected_years=None):
     
     # Enhanced hover text
     hover_texts = [
-        f"<b>✈️ {stat['operator']}</b><br>"
+        f"<b> {stat['operator']}</b><br>"
         f"<b>Total Crashes:</b> {stat['crashes']}<br>"
         f"<b>Total Fatalities:</b> {stat['fatalities']:,}<br>"
         f"<b>Avg Fatalities/Crash:</b> {stat['avg_fatalities']:.1f}<br>"
@@ -738,7 +816,7 @@ def create_operator_crash_analysis(df, selected_years=None):
     year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
     fig.update_layout(
         title=dict(
-            text=f"✈️ Top Airlines by Crash Count{year_text}",
+            text=f" Top Airlines by Crash Count{year_text}",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -772,8 +850,8 @@ def create_aircraft_type_analysis(df, selected_years=None):
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
     
-    # 🎨 Debug: Print aircraft type analysis creation info
-    print(f"🎨 Creating aircraft type analysis for years: {selected_years}")
+    #  Debug: Print aircraft type analysis creation info
+    print(f" Creating aircraft type analysis for years: {selected_years}")
     
     # Get top 12 aircraft types
     aircraft_counts = filtered_df['Type'].value_counts().head(12)
@@ -792,7 +870,7 @@ def create_aircraft_type_analysis(df, selected_years=None):
     
     # Enhanced hover text
     hover_texts = [
-        f"<b>🛩️ {stat['type']}</b><br>"
+        f"<b> {stat['type']}</b><br>"
         f"<b>Total Crashes:</b> {stat['crashes']}<br>"
         f"<b>Total Fatalities:</b> {stat['fatalities']:,}<br>"
         f"<b>Safety Rank:</b> #{i+1} most crashes"
@@ -818,7 +896,7 @@ def create_aircraft_type_analysis(df, selected_years=None):
     year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
     fig.update_layout(
         title=dict(
-            text=f"🛩️ Aircraft Types in Crashes{year_text}",
+            text=f" Aircraft Types in Crashes{year_text}",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -852,8 +930,8 @@ def create_monthly_crash_pattern(df, selected_years=None):
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
     
-    # 🎨 Debug: Print monthly pattern creation info
-    print(f"🎨 Creating monthly crash pattern for years: {selected_years}")
+    #  Debug: Print monthly pattern creation info
+    print(f" Creating monthly crash pattern for years: {selected_years}")
     
     # Group by month
     monthly_crashes = filtered_df.groupby('month_name').size().reindex(
@@ -867,10 +945,10 @@ def create_monthly_crash_pattern(df, selected_years=None):
     
     # Enhanced hover text
     hover_texts = [
-        f"<b>📅 Month:</b> {month}<br>"
-        f"<b>✈️ Total Crashes:</b> {int(crashes)}<br>"
-        f"<b>💀 Total Fatalities:</b> {int(monthly_fatalities[month])}<br>"
-        f"<b>📊 Avg Fatalities/Crash:</b> {monthly_fatalities[month]/crashes:.1f}" if crashes > 0 else f"<b>📅 Month:</b> {month}<br><b>No crashes</b>"
+        f"<b> Month:</b> {month}<br>"
+        f"<b> Total Crashes:</b> {int(crashes)}<br>"
+        f"<b> Total Fatalities:</b> {int(monthly_fatalities[month])}<br>"
+        f"<b> Avg Fatalities/Crash:</b> {monthly_fatalities[month]/crashes:.1f}" if crashes > 0 else f"<b> Month:</b> {month}<br><b>No crashes</b>"
         for month, crashes in monthly_crashes.items()
     ]
     
@@ -899,7 +977,7 @@ def create_monthly_crash_pattern(df, selected_years=None):
     year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
     fig.update_layout(
         title=dict(
-            text=f"📈 Monthly Crash Patterns{year_text}",
+            text=f" Monthly Crash Patterns{year_text}",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -933,8 +1011,8 @@ def create_fatality_trends_chart(df, selected_years=None):
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
     
-    # 🎨 Debug: Print fatality trends creation info
-    print(f"🎨 Creating fatality trends chart for years: {selected_years}")
+    #  Debug: Print fatality trends creation info
+    print(f" Creating fatality trends chart for years: {selected_years}")
     
     yearly_data = filtered_df.groupby('year').agg({
         'Fatalities': 'sum',
@@ -944,10 +1022,10 @@ def create_fatality_trends_chart(df, selected_years=None):
     
     # Enhanced hover text
     hover_texts = [
-        f"<b>📅 Year:</b> {int(row['year'])}<br>"
-        f"<b>💀 Total Fatalities:</b> {int(row['total_fatalities']):,}<br>"
-        f"<b>✈️ Total Crashes:</b> {int(row['total_crashes'])}<br>"
-        f"<b>📊 Avg Fatalities/Crash:</b> {row['total_fatalities']/row['total_crashes']:.1f}"
+        f"<b> Year:</b> {int(row['year'])}<br>"
+        f"<b> Total Fatalities:</b> {int(row['total_fatalities']):,}<br>"
+        f"<b> Total Crashes:</b> {int(row['total_crashes'])}<br>"
+        f"<b> Avg Fatalities/Crash:</b> {row['total_fatalities']/row['total_crashes']:.1f}"
         for _, row in yearly_data.iterrows()
     ]
     
@@ -967,7 +1045,7 @@ def create_fatality_trends_chart(df, selected_years=None):
     year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
     fig.update_layout(
         title=dict(
-            text=f"💀 Fatality Trends{year_text}",
+            text=f" Fatality Trends{year_text}",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -998,20 +1076,20 @@ def create_timeline_chart(df, selected_years=None):
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
     
-    # 🎨 Debug: Print timeline creation info
-    print(f"🎨 Creating timeline chart for years: {selected_years}")
+    #  Debug: Print timeline creation info
+    print(f" Creating timeline chart for years: {selected_years}")
     
     # Sort by date for timeline
     timeline_df = filtered_df.sort_values('Date').copy()
     
     # Create hover text with enhanced details
     hover_texts = [
-        f"<b>📅 {row['Date'].strftime('%B %d, %Y')}</b><br>"
-        f"<b>✈️ Operator:</b> {row['Operator']}<br>"
-        f"<b>📍 Location:</b> {row['Location']}<br>"
-        f"<b>💀 Fatalities:</b> {int(row['Fatalities'])}<br>"
-        f"<b>👥 Aboard:</b> {int(row['Aboard'])}<br>"
-        f"<b>📝 Summary:</b> {row['Summary'][:80]}..."
+        f"<b> {row['Date'].strftime('%B %d, %Y')}</b><br>"
+        f"<b> Operator:</b> {row['Operator']}<br>"
+        f"<b> Location:</b> {row['Location']}<br>"
+        f"<b> Fatalities:</b> {int(row['Fatalities'])}<br>"
+        f"<b> Aboard:</b> {int(row['Aboard'])}<br>"
+        f"<b> Summary:</b> {row['Summary'][:80]}..."
         for _, row in timeline_df.iterrows()
     ]
     
@@ -1038,7 +1116,7 @@ def create_timeline_chart(df, selected_years=None):
     year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
     fig.update_layout(
         title=dict(
-            text=f"📅 Aviation Incident Timeline{year_text}",
+            text=f" Aviation Incident Timeline{year_text}",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -1069,8 +1147,8 @@ def create_cost_analysis(df, selected_year=None):
     """
     filtered_df = df if selected_year is None else df[df['year'] == selected_year]
     
-    # 🎨 Debug: Print cost analysis creation info
-    print(f"🎨 Creating cost analysis for year: {selected_year}")
+    #  Debug: Print cost analysis creation info
+    print(f" Creating cost analysis for year: {selected_year}")
     
     if len(filtered_df) == 0:
         return None, None
@@ -1093,11 +1171,11 @@ def create_cost_analysis(df, selected_year=None):
     
     # Enhanced hover text for cost chart
     cost_hover_texts = [
-        f"<b>✈️ {row['Airline']}</b><br>"
-        f"<b>💰 Total Cost:</b> ${row['Cost_Millions']:.0f}M<br>"
-        f"<b>✈️ Crashes:</b> {int(row['Crashes'])}<br>"
-        f"<b>💀 Fatalities:</b> {int(row['Fatalities'])}<br>"
-        f"<b>📊 Cost Breakdown:</b><br>"
+        f"<b> {row['Airline']}</b><br>"
+        f"<b> Total Cost:</b> ${row['Cost_Millions']:.0f}M<br>"
+        f"<b> Crashes:</b> {int(row['Crashes'])}<br>"
+        f"<b> Fatalities:</b> {int(row['Fatalities'])}<br>"
+        f"<b> Cost Breakdown:</b><br>"
         f"  - Crash costs: ${row['Crashes']*50:.0f}M<br>"
         f"  - Fatality costs: ${row['Fatalities']*1.5:.0f}M"
         for _, row in airline_stats[:8].iterrows()
@@ -1121,7 +1199,7 @@ def create_cost_analysis(df, selected_year=None):
     
     cost_fig.update_layout(
         title=dict(
-            text=f"💰 Airline Cost Breakdown{' - ' + str(selected_year) if selected_year else ''}",
+            text=f" Airline Cost Breakdown{' - ' + str(selected_year) if selected_year else ''}",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -1139,11 +1217,11 @@ def create_cost_analysis(df, selected_year=None):
     
     # Enhanced hover text for risk chart
     risk_hover_texts = [
-        f"<b>✈️ {row['Airline']}</b><br>"
-        f"<b>✈️ Crashes:</b> {int(row['Crashes'])}<br>"
-        f"<b>📊 Fatality Rate:</b> {row['Fatality_Rate']:.1f}%<br>"
-        f"<b>💀 Fatalities:</b> {int(row['Fatalities'])} / {int(row['Aboard'])} aboard<br>"
-        f"<b>💰 Total Cost:</b> ${row['Cost_Millions']:.0f}M"
+        f"<b> {row['Airline']}</b><br>"
+        f"<b> Crashes:</b> {int(row['Crashes'])}<br>"
+        f"<b> Fatality Rate:</b> {row['Fatality_Rate']:.1f}%<br>"
+        f"<b> Fatalities:</b> {int(row['Fatalities'])} / {int(row['Aboard'])} aboard<br>"
+        f"<b> Total Cost:</b> ${row['Cost_Millions']:.0f}M"
         for _, row in airline_stats[:10].iterrows()
     ]
     
@@ -1168,7 +1246,7 @@ def create_cost_analysis(df, selected_year=None):
     
     risk_fig.update_layout(
         title=dict(
-            text="⚠️ Airline Risk Analysis",
+            text=" Airline Risk Analysis",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -1199,8 +1277,8 @@ def create_day_of_week_analysis(df, selected_years=None):
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
     
-    # 🎨 Debug: Print day of week analysis creation info
-    print(f"🎨 Creating day of week analysis for years: {selected_years}")
+    #  Debug: Print day of week analysis creation info
+    print(f" Creating day of week analysis for years: {selected_years}")
     
     # Group by day of week
     day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -1217,12 +1295,12 @@ def create_day_of_week_analysis(df, selected_years=None):
     
     # Enhanced hover text
     hover_texts = [
-        f"<b>📅 {day}</b><br>"
-        f"<b>✈️ Total Crashes:</b> {int(day_stats.loc[day, 'crashes'])}<br>"
-        f"<b>💀 Total Fatalities:</b> {int(day_stats.loc[day, 'fatalities'])}<br>"
-        f"<b>📊 Avg Fatalities/Crash:</b> {day_stats.loc[day, 'avg_fatalities']:.1f}<br>"
-        f"<b>✅ Survival Rate:</b> {day_stats.loc[day, 'survival_rate']:.1f}%<br>"
-        f"<b>🎲 Risk Level:</b> {'High' if day_stats.loc[day, 'crashes'] > day_stats['crashes'].median() else 'Low'}"
+        f"<b> {day}</b><br>"
+        f"<b> Total Crashes:</b> {int(day_stats.loc[day, 'crashes'])}<br>"
+        f"<b> Total Fatalities:</b> {int(day_stats.loc[day, 'fatalities'])}<br>"
+        f"<b> Avg Fatalities/Crash:</b> {day_stats.loc[day, 'avg_fatalities']:.1f}<br>"
+        f"<b> Survival Rate:</b> {day_stats.loc[day, 'survival_rate']:.1f}%<br>"
+        f"<b> Risk Level:</b> {'High' if day_stats.loc[day, 'crashes'] > day_stats['crashes'].median() else 'Low'}"
         for day in day_order
     ]
     
@@ -1248,7 +1326,7 @@ def create_day_of_week_analysis(df, selected_years=None):
     year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
     fig.update_layout(
         title=dict(
-            text=f"📅 Crashes by Day of Week{year_text}",
+            text=f" Crashes by Day of Week{year_text}",
             font=dict(size=22, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -1279,8 +1357,8 @@ def create_day_of_week_survival_analysis(df, selected_years=None):
         tuple: (fig, day_stats) - Day of week survival analysis chart and statistics
     """
     
-    # 🎨 Debug: Print day of week survival analysis creation info
-    print(f"🎨 Creating day of week survival analysis for years: {selected_years}")
+    #  Debug: Print day of week survival analysis creation info
+    print(f" Creating day of week survival analysis for years: {selected_years}")
     
     filtered_df = df
     if selected_years:
@@ -1311,12 +1389,12 @@ def create_day_of_week_survival_analysis(df, selected_years=None):
     
     # Enhanced hover text
     hover_texts = [
-        f"<b>📅 {day}</b><br>"
-        f"<b>✈️ Total Crashes:</b> {int(day_stats.loc[day, 'crashes'])}<br>"
-        f"<b>💀 Total Fatalities:</b> {int(day_stats.loc[day, 'fatalities'])}<br>"
-        f"<b>📊 Avg Fatalities/Crash:</b> {day_stats.loc[day, 'avg_fatalities']:.1f}<br>"
-        f"<b>✅ Survival Rate:</b> {day_stats.loc[day, 'survival_rate']:.1f}%<br>"
-        f"<b>🎲 Risk Level:</b> {'High' if day_stats.loc[day, 'crashes'] > np.median(day_stats['crashes'].values) else 'Low'}"
+        f"<b> {day}</b><br>"
+        f"<b> Total Crashes:</b> {int(day_stats.loc[day, 'crashes'])}<br>"
+        f"<b> Total Fatalities:</b> {int(day_stats.loc[day, 'fatalities'])}<br>"
+        f"<b> Avg Fatalities/Crash:</b> {day_stats.loc[day, 'avg_fatalities']:.1f}<br>"
+        f"<b> Survival Rate:</b> {day_stats.loc[day, 'survival_rate']:.1f}%<br>"
+        f"<b> Risk Level:</b> {'High' if day_stats.loc[day, 'crashes'] > np.median(day_stats['crashes'].values) else 'Low'}"
         for day in day_order
     ]
     
@@ -1342,7 +1420,7 @@ def create_day_of_week_survival_analysis(df, selected_years=None):
     year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
     fig.update_layout(
         title=dict(
-            text=f"🛡️ Survival Rate Analysis by Day of Week{year_text}",
+            text=f" Survival Rate Analysis by Day of Week{year_text}",
             font=dict(size=22, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -1375,8 +1453,8 @@ def create_yearly_survival_analysis(df, selected_years=None):
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
     
-    # 🎨 Debug: Print survival analysis creation info
-    print(f"🎨 Creating survival analysis chart for years: {selected_years}")
+    #  Debug: Print survival analysis creation info
+    print(f" Creating survival analysis chart for years: {selected_years}")
     
     # Group by year to calculate survival rates
     yearly_stats = filtered_df.groupby('year').agg({
@@ -1390,11 +1468,11 @@ def create_yearly_survival_analysis(df, selected_years=None):
     
     # Enhanced hover text
     hover_texts = [
-        f"<b>📅 Year:</b> {int(row['year'])}<br>"
-        f"<b>👥 Aboard:</b> {int(row['Aboard'])}<br>"
-        f"<b>💀 Fatalities:</b> {int(row['Fatalities'])}<br>"
-        f"<b>✅ Survivors:</b> {int(row['survivors'])}<br>"
-        f"<b>🛡️ Survival Rate:</b> {row['survival_rate']:.1f}%"
+        f"<b> Year:</b> {int(row['year'])}<br>"
+        f"<b> Aboard:</b> {int(row['Aboard'])}<br>"
+        f"<b> Fatalities:</b> {int(row['Fatalities'])}<br>"
+        f"<b> Survivors:</b> {int(row['survivors'])}<br>"
+        f"<b> Survival Rate:</b> {row['survival_rate']:.1f}%"
         for _, row in yearly_stats.iterrows()
     ]
     
@@ -1415,7 +1493,7 @@ def create_yearly_survival_analysis(df, selected_years=None):
     year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
     fig.update_layout(
         title=dict(
-            text=f"🛡️ Survival Rate Over Time{year_text}",
+            text=f" Survival Rate Over Time{year_text}",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -1449,8 +1527,8 @@ def create_seasonal_analysis(df, selected_years=None):
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
     
-    # 🎨 Debug: Print seasonal analysis creation info
-    print(f"🎨 Creating seasonal analysis for years: {selected_years}")
+    #  Debug: Print seasonal analysis creation info
+    print(f" Creating seasonal analysis for years: {selected_years}")
     
     season_order = ['Winter', 'Spring', 'Summer', 'Fall']
     season_stats = filtered_df.groupby('season').agg({
@@ -1465,11 +1543,11 @@ def create_seasonal_analysis(df, selected_years=None):
     
     # Enhanced hover text
     hover_texts = [
-        f"<b>🌤️ {season}</b><br>"
-        f"<b>✈️ Total Crashes:</b> {int(season_stats.loc[season, 'crashes'])}<br>"
-        f"<b>💀 Total Fatalities:</b> {int(season_stats.loc[season, 'fatalities'])}<br>"
-        f"<b>📊 % of All Crashes:</b> {season_stats.loc[season, 'percentage']:.1f}%<br>"
-        f"<b>📈 Avg Fatalities/Crash:</b> {season_stats.loc[season, 'avg_fatalities']:.1f}"
+        f"<b> {season}</b><br>"
+        f"<b> Total Crashes:</b> {int(season_stats.loc[season, 'crashes'])}<br>"
+        f"<b> Total Fatalities:</b> {int(season_stats.loc[season, 'fatalities'])}<br>"
+        f"<b> % of All Crashes:</b> {season_stats.loc[season, 'percentage']:.1f}%<br>"
+        f"<b> Avg Fatalities/Crash:</b> {season_stats.loc[season, 'avg_fatalities']:.1f}"
         for season in season_order
     ]
     
@@ -1497,7 +1575,7 @@ def create_seasonal_analysis(df, selected_years=None):
     year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
     fig.update_layout(
         title=dict(
-            text=f"🌤️ Seasonal Crash Patterns{year_text}",
+            text=f" Seasonal Crash Patterns{year_text}",
             font=dict(size=22, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -1532,20 +1610,20 @@ def create_decade_comparison(df):
     }).reset_index()
     decade_stats.columns = ['decade', 'crashes', 'fatalities', 'aboard']
     
-    # 🎨 Debug: Print decade comparison creation info
-    print(f"🎨 Creating decade comparison with {len(decade_stats)} decades")
+    #  Debug: Print decade comparison creation info
+    print(f" Creating decade comparison with {len(decade_stats)} decades")
     
     decade_stats['avg_fatalities'] = decade_stats['fatalities'] / decade_stats['crashes']
     decade_stats['fatality_rate'] = (decade_stats['fatalities'] / decade_stats['aboard'] * 100).fillna(0)
     
     # Enhanced hover text
     hover_texts = [
-        f"<b>📅 {int(row['decade'])}s</b><br>"
-        f"<b>✈️ Total Crashes:</b> {int(row['crashes'])}<br>"
-        f"<b>💀 Total Fatalities:</b> {int(row['fatalities']):,}<br>"
-        f"<b>📊 Avg Fatalities/Crash:</b> {row['avg_fatalities']:.1f}<br>"
-        f"<b>📈 Fatality Rate:</b> {row['fatality_rate']:.1f}%<br>"
-        f"<b>🎯 Safety Trend:</b> {'Improving' if i > 0 and row['fatality_rate'] < decade_stats.iloc[i-1]['fatality_rate'] else 'Stable' if i == 0 else 'Worsening'}"
+        f"<b> {int(row['decade'])}s</b><br>"
+        f"<b> Total Crashes:</b> {int(row['crashes'])}<br>"
+        f"<b> Total Fatalities:</b> {int(row['fatalities']):,}<br>"
+        f"<b> Avg Fatalities/Crash:</b> {row['avg_fatalities']:.1f}<br>"
+        f"<b> Fatality Rate:</b> {row['fatality_rate']:.1f}%<br>"
+        f"<b> Safety Trend:</b> {'Improving' if i > 0 and row['fatality_rate'] < decade_stats.iloc[i-1]['fatality_rate'] else 'Stable' if i == 0 else 'Worsening'}"
         for i, row in decade_stats.iterrows()
     ]
     
@@ -1577,7 +1655,7 @@ def create_decade_comparison(df):
     
     fig.update_layout(
         title=dict(
-            text="📊 Decade-by-Decade Aviation Safety Trends",
+            text=" Decade-by-Decade Aviation Safety Trends",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -1619,8 +1697,8 @@ def create_correlation_heatmap(df, selected_years=None):
     if selected_years:
         filtered_df = df[df['year'].between(selected_years[0], selected_years[1])]
     
-    # 🎨 Debug: Print correlation heatmap creation info
-    print(f"🎨 Creating correlation heatmap for years: {selected_years}")
+    #  Debug: Print correlation heatmap creation info
+    print(f" Creating correlation heatmap for years: {selected_years}")
     
     # Prepare data for correlation
     # Count crashes by year, month, day of week
@@ -1659,7 +1737,7 @@ def create_correlation_heatmap(df, selected_years=None):
     year_text = f" ({selected_years[0]}-{selected_years[1]})" if selected_years else " (All Years)"
     fig.update_layout(
         title=dict(
-            text=f"🔥 Correlation Heatmap - Factor Relationships{year_text}",
+            text=f" Correlation Heatmap - Factor Relationships{year_text}",
             font=dict(size=24, color=COLORS['text'])
         ),
         height=600,
@@ -1687,8 +1765,8 @@ def calculate_safety_score(df, entity_name, entity_type='operator'):
     else:
         entity_data = df[df['Type'] == entity_name]
     
-    # 🎨 Debug: Print safety score calculation info
-    print(f"🎨 Calculating safety score for {entity_name} ({entity_type})")
+    #  Debug: Print safety score calculation info
+    print(f" Calculating safety score for {entity_name} ({entity_type})")
     
     if len(entity_data) == 0:
         return None
@@ -1736,8 +1814,8 @@ def predict_future_trends(df, years_ahead=5):
     """
     yearly_data = df.groupby('year').size().reset_index(name='crashes')
     
-    # 🎨 Debug: Print prediction info
-    print(f"🎨 Predicting trends for {years_ahead} years ahead")
+    #  Debug: Print prediction info
+    print(f" Predicting trends for {years_ahead} years ahead")
     
     # Prepare data
     X = yearly_data['year'].values.reshape(-1, 1)
@@ -1774,8 +1852,8 @@ def detect_anomalies(df):
     }).reset_index()
     yearly_data.columns = ['year', 'crashes', 'fatalities']
     
-    # 🎨 Debug: Print anomaly detection info
-    print(f"🎨 Detecting anomalies in {len(df)} records")
+    #  Debug: Print anomaly detection info
+    print(f" Detecting anomalies in {len(df)} records")
     
     # Extract values as numpy arrays
     crashes_values = yearly_data['crashes'].values.astype(float)
@@ -1818,20 +1896,20 @@ def generate_ai_insights(df):
     """
     insights = []
     
-    # 🎨 Debug: Print AI insights generation info
-    print(f"🎨 Generating AI insights from {len(df)} records")
+    #  Debug: Print AI insights generation info
+    print(f" Generating AI insights from {len(df)} records")
     
     # Safest and most dangerous periods
     yearly_crashes = df.groupby('year').size()
     safest_year = yearly_crashes.idxmin()
     worst_year = yearly_crashes.idxmax()
     insights.append({
-        'icon': '📅',
+        'icon': '',
         'title': 'Safest Year',
         'text': f"{safest_year} had only {yearly_crashes[safest_year]} crashes - the safest year on record!"
     })
     insights.append({
-        'icon': '⚠️',
+        'icon': '',
         'title': 'Most Dangerous Year',
         'text': f"{worst_year} recorded {yearly_crashes[worst_year]} crashes - the highest in history."
     })
@@ -1841,7 +1919,7 @@ def generate_ai_insights(df):
     if len(operator_crashes) > 0:
         most_crashes_operator = operator_crashes.index[0]
         insights.append({
-            'icon': '✈️',
+            'icon': '',
             'title': 'Most Incidents',
             'text': f"{most_crashes_operator} has the most recorded incidents with {operator_crashes.iloc[0]} crashes."
         })
@@ -1851,7 +1929,7 @@ def generate_ai_insights(df):
     total_fatalities = df['Fatalities'].sum()
     survival_rate = ((total_aboard - total_fatalities) / total_aboard * 100) if total_aboard > 0 else 0
     insights.append({
-        'icon': '💚',
+        'icon': '',
         'title': 'Overall Survival Rate',
         'text': f"{survival_rate:.1f}% of people aboard survived crashes - aviation safety has improved dramatically!"
     })
@@ -1861,7 +1939,7 @@ def generate_ai_insights(df):
     most_common_day = day_crashes.idxmax()
     least_common_day = day_crashes.idxmin()
     insights.append({
-        'icon': '📆',
+        'icon': '',
         'title': 'Day Pattern',
         'text': f"{most_common_day} has the most crashes ({day_crashes[most_common_day]}), while {least_common_day} is statistically safer ({day_crashes[least_common_day]} crashes)."
     })
@@ -1870,7 +1948,7 @@ def generate_ai_insights(df):
     season_crashes = df.groupby('season').size()
     most_dangerous_season = season_crashes.idxmax()
     insights.append({
-        'icon': '🌤️',
+        'icon': '',
         'title': 'Seasonal Pattern',
         'text': f"{most_dangerous_season} is the most dangerous season with {season_crashes[most_dangerous_season]} crashes recorded."
     })
@@ -1883,7 +1961,7 @@ def generate_ai_insights(df):
         older_avg = len(older_decade) / 10
         improvement = ((older_avg - recent_avg) / older_avg * 100) if older_avg > 0 else 0
         insights.append({
-            'icon': '📈',
+            'icon': '',
             'title': 'Safety Improvement',
             'text': f"Aviation safety has improved by {improvement:.1f}% comparing crashes per year in 1980s vs 2000s!"
         })
@@ -1891,7 +1969,7 @@ def generate_ai_insights(df):
     # Ground casualties insight
     ground_casualties = df['Ground'].sum()
     insights.append({
-        'icon': '🏘️',
+        'icon': '',
         'title': 'Ground Impact',
         'text': f"{int(ground_casualties)} ground casualties recorded - emphasizing the importance of safe flight paths over populated areas."
     })
@@ -1899,7 +1977,7 @@ def generate_ai_insights(df):
     # Most deadly single crash
     deadliest_crash = df.loc[df['Fatalities'].idxmax()]
     insights.append({
-        'icon': '💀',
+        'icon': '',
         'title': 'Deadliest Incident',
         'text': f"The deadliest crash had {int(deadliest_crash['Fatalities'])} fatalities ({deadliest_crash['Operator']}, {deadliest_crash['Date'].year})."
     })
@@ -1911,7 +1989,7 @@ def generate_ai_insights(df):
     if len(best_survival[best_survival['survival_rate'] > 90]) > 0:
         miracle_crash = best_survival[best_survival['survival_rate'] > 90].iloc[0]
         insights.append({
-            'icon': '🎉',
+            'icon': '',
             'title': 'Miracle Survival',
             'text': f"{int(miracle_crash['survival_count'])} out of {int(miracle_crash['Aboard'])} survived a crash - a {miracle_crash['survival_rate']:.1f}% survival rate!"
         })
@@ -1934,8 +2012,8 @@ def create_safety_ranking_chart(df, entity_type='operator', top_n=15):
     else:
         entities = df['Type'].value_counts().head(top_n).index
     
-    # 🎨 Debug: Print safety ranking creation info
-    print(f"🎨 Creating safety rankings for {entity_type}, top {top_n}")
+    #  Debug: Print safety ranking creation info
+    print(f" Creating safety rankings for {entity_type}, top {top_n}")
     
     scores = []
     for entity in entities:
@@ -1965,7 +2043,7 @@ def create_safety_ranking_chart(df, entity_type='operator', top_n=15):
     entity_label = "Airlines" if entity_type == 'operator' else "Aircraft Types"
     fig.update_layout(
         title=dict(
-            text=f"🏆 Safety Rankings - {entity_label}",
+            text=f" Safety Rankings - {entity_label}",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -1997,8 +2075,8 @@ def create_prediction_chart(df):
     """
     future_years, predictions, r2_score = predict_future_trends(df, years_ahead=10)
     
-    # 🎨 Debug: Print prediction chart creation info
-    print(f"🎨 Creating prediction chart with R² score: {r2_score:.3f}")
+    #  Debug: Print prediction chart creation info
+    print(f" Creating prediction chart with R score: {r2_score:.3f}")
     
     # Historical data
     yearly_data = df.groupby('year').size().reset_index(name='crashes')
@@ -2029,7 +2107,7 @@ def create_prediction_chart(df):
     
     fig.update_layout(
         title=dict(
-            text=f"🔮 ML-Powered Crash Predictions (Next 10 Years) - R² Score: {r2_score:.3f}",
+            text=f" ML-Powered Crash Predictions (Next 10 Years) - R Score: {r2_score:.3f}",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -2066,8 +2144,8 @@ def create_anomaly_chart(df):
     }).reset_index()
     yearly_data.columns = ['year', 'crashes', 'fatalities']
     
-    # 🎨 Debug: Print anomaly chart creation info
-    print(f"🎨 Creating anomaly chart with {len(anomalies)} anomalies")
+    #  Debug: Print anomaly chart creation info
+    print(f" Creating anomaly chart with {len(anomalies)} anomalies")
     
     fig = go.Figure()
     
@@ -2095,12 +2173,12 @@ def create_anomaly_chart(df):
             line=dict(color='yellow', width=2)
         ),
         text=[f"{row['year']}: {row['anomaly_type']}" for _, row in anomalies.iterrows()],
-        hovertemplate='<b>⚠️ ANOMALY DETECTED</b><br><b>Year:</b> %{x}<br><b>Crashes:</b> %{y}<br>%{text}<extra></extra>'
+        hovertemplate='<b> ANOMALY DETECTED</b><br><b>Year:</b> %{x}<br><b>Crashes:</b> %{y}<br>%{text}<extra></extra>'
     ))
     
     fig.update_layout(
         title=dict(
-            text="🚨 Anomaly Detection - Unusual Years Highlighted",
+            text=" Anomaly Detection - Unusual Years Highlighted",
             font=dict(size=24, color=COLORS['text'])
         ),
         xaxis=dict(
@@ -2122,12 +2200,12 @@ def create_anomaly_chart(df):
     return fig, anomalies
 
 def main():
-    # 🎨 Debug: Print main function start
-    print("🎨 Starting aviation dashboard application")
+    #  Debug: Print main function start
+    print(" Starting aviation dashboard application")
     
     df = load_data()
     
-    st.markdown('<h1 class="tab-header">✈️ ULTIMATE Aviation Dashboard</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="tab-header"> ULTIMATE Aviation Dashboard</h1>', unsafe_allow_html=True)
     
     # BIG METRICS
     col1, col2, col3, col4 = st.columns(4)
@@ -2135,49 +2213,49 @@ def main():
         st.markdown(f'''
         <div class="metric-card">
             <div class="metric-number">{len(df):,}</div>
-            <div class="metric-label">📊 Total Records</div>
+            <div class="metric-label"> Total Records</div>
         </div>
         ''', unsafe_allow_html=True)
     with col2:
         st.markdown(f'''
         <div class="metric-card">
             <div class="metric-number">{int(df["Fatalities"].sum()):,}</div>
-            <div class="metric-label">💀 Total Fatalities</div>
+            <div class="metric-label"> Total Fatalities</div>
         </div>
         ''', unsafe_allow_html=True)
     with col3:
         st.markdown(f'''
         <div class="metric-card">
             <div class="metric-number">{df["year"].min()}-{df["year"].max()}</div>
-            <div class="metric-label">📅 Year Range</div>
+            <div class="metric-label"> Year Range</div>
         </div>
         ''', unsafe_allow_html=True)
     with col4:
         st.markdown(f'''
         <div class="metric-card">
             <div class="metric-number">{df["Operator"].nunique()}</div>
-            <div class="metric-label">✈️ Airlines</div>
+            <div class="metric-label"> Airlines</div>
         </div>
         ''', unsafe_allow_html=True)
     
     # SEVEN TABS
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-        "🌍 **3D GLOBE**", 
-        "🏁 **RACING STICKS**", 
-        "🎯 **CRASH REASONS**", 
-        "💀 **FATALITY TRENDS**",
-        "💰 **COST BREAKDOWN**",
-        "📊 **STATISTICAL INSIGHTS**",
-        "🔮 **PREDICTIVE INSIGHTS**"
+        " **3D GLOBE**", 
+        " **RACING STICKS**", 
+        " **CRASH REASONS**", 
+        " **FATALITY TRENDS**",
+        " **COST BREAKDOWN**",
+        " **STATISTICAL INSIGHTS**",
+        " **PREDICTIVE INSIGHTS**"
     ])
     
     # Tab 1: 3D Globe
     with tab1:
-        st.markdown('<h2 class="tab-header">🌍 Interactive 3D Globe</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="tab-header"> Interactive 3D Globe</h2>', unsafe_allow_html=True)
         
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.markdown("### 🎯 Year Selector")
+            st.markdown("###  Year Selector")
             years = [None] + sorted(df['year'].unique())
             selected_year = st.selectbox(
                 "Select Year:", years,
@@ -2191,10 +2269,10 @@ def main():
     
     # Tab 2: Racing Sticks Animation
     with tab2:
-        st.markdown('<h2 class="tab-header">🏁 Racing Sticks Animation</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="tab-header"> Racing Sticks Animation</h2>', unsafe_allow_html=True)
         
         st.markdown("""
-        ### 🎮 Animation Features:
+        ###  Animation Features:
         - **Purple Bars**: Aviation crashes (partially transparent)
         - **Blue Bars**: Fatalities (scaled & partially transparent)
         - **Ultra-Smooth Animation**: Racing bars that go up and down smoothly
@@ -2211,25 +2289,25 @@ def main():
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric("📊 Total Crashes", f"{len(df):,}")
+            st.metric(" Total Crashes", f"{len(df):,}")
         
         with col2:
-            st.metric("💀 Total Fatalities", f"{int(df['Fatalities'].sum()):,}")
+            st.metric(" Total Fatalities", f"{int(df['Fatalities'].sum()):,}")
         
         with col3:
-            st.metric("📅 Years Covered", f"{df['year'].min()}-{df['year'].max()}")
+            st.metric(" Years Covered", f"{df['year'].min()}-{df['year'].max()}")
         
         with col4:
-            st.metric("🎬 Animation Frames", f"{len(sorted(df['year'].unique())[::3])}")
+            st.metric(" Animation Frames", f"{len(sorted(df['year'].unique())[::3])}")
     
     # Tab 3: Crash Reasons
     with tab3:
-        st.markdown('<h2 class="tab-header">🎯 Crash Reasons Analysis</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="tab-header"> Crash Reasons Analysis</h2>', unsafe_allow_html=True)
         
         # Year range selector
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.markdown("### 📅 Year Range Filter")
+            st.markdown("###  Year Range Filter")
             min_year = int(df['year'].min())
             max_year = int(df['year'].max())
             
@@ -2243,11 +2321,11 @@ def main():
             
             # Show filtered stats
             filtered_data = df[df['year'].between(year_range[0], year_range[1])]
-            st.metric("📈 Filtered Crashes", f"{len(filtered_data):,}")
-            st.metric("📅 Years Selected", f"{year_range[1] - year_range[0] + 1}")
+            st.metric(" Filtered Crashes", f"{len(filtered_data):,}")
+            st.metric(" Years Selected", f"{year_range[1] - year_range[0] + 1}")
         
         with col2:
-            st.markdown("### 📊 Overview Statistics")
+            st.markdown("###  Overview Statistics")
             # Quick overview metrics
             total_filtered = len(filtered_data)
             fatalities_filtered = int(filtered_data['Fatalities'].sum())
@@ -2255,11 +2333,11 @@ def main():
             
             overview_col1, overview_col2, overview_col3 = st.columns(3)
             with overview_col1:
-                st.metric("✈️ Total Crashes", f"{total_filtered:,}")
+                st.metric(" Total Crashes", f"{total_filtered:,}")
             with overview_col2:
-                st.metric("💀 Total Fatalities", f"{fatalities_filtered:,}")
+                st.metric(" Total Fatalities", f"{fatalities_filtered:,}")
             with overview_col3:
-                st.metric("🏢 Airlines Involved", f"{operators_filtered:,}")
+                st.metric(" Airlines Involved", f"{operators_filtered:,}")
         
         st.markdown("---")
         
@@ -2267,44 +2345,44 @@ def main():
         viz_col1, viz_col2 = st.columns(2)
         
         with viz_col1:
-            st.markdown("#### 🍰 Crash Reasons Distribution")
+            st.markdown("####  Crash Reasons Distribution")
             reasons_fig = create_crash_reasons_chart(df, year_range)
             st.plotly_chart(reasons_fig, use_container_width=True)
             
-            st.markdown("#### 📈 Monthly Crash Patterns")
+            st.markdown("####  Monthly Crash Patterns")
             monthly_fig = create_monthly_crash_pattern(df, year_range)
             st.plotly_chart(monthly_fig, use_container_width=True)
         
         with viz_col2:
-            st.markdown("#### 🛩️ Aircraft Types")
+            st.markdown("####  Aircraft Types")
             aircraft_fig = create_aircraft_type_analysis(df, year_range)
             st.plotly_chart(aircraft_fig, use_container_width=True)
         
         st.markdown("---")
         
         # Full-width charts
-        st.markdown("#### 🌈 **MULTI-COLORED STICK CHART** - Crash Reasons by Year")
+        st.markdown("####  **MULTI-COLORED STICK CHART** - Crash Reasons by Year")
         stick_fig = create_multi_colored_stick_chart(df, year_range)
         st.plotly_chart(stick_fig, use_container_width=True)
         
-        st.markdown("#### ✈️ Top Airlines by Crash Count")
+        st.markdown("####  Top Airlines by Crash Count")
         operator_fig = create_operator_crash_analysis(df, year_range)
         st.plotly_chart(operator_fig, use_container_width=True)
     
     # Tab 4: Fatality Trends  
     with tab4:
-        st.markdown('<h2 class="tab-header">💀 Fatality Trends</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="tab-header"> Fatality Trends</h2>', unsafe_allow_html=True)
         
         fatality_fig = create_fatality_trends_chart(df)
         st.plotly_chart(fatality_fig, use_container_width=True)
     
     # Tab 5: Cost Breakdown
     with tab5:
-        st.markdown('<h2 class="tab-header">💰 Cost Breakdown Analysis</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="tab-header"> Cost Breakdown Analysis</h2>', unsafe_allow_html=True)
         
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.markdown("### 🎯 Year Selector")
+            st.markdown("###  Year Selector")
             cost_years = [None] + sorted(df['year'].unique())
             cost_year = st.selectbox(
                 "Analysis Year:", cost_years,
@@ -2332,17 +2410,17 @@ def main():
     
     # Tab 6: Statistical Insights
     with tab6:
-        st.markdown('<h2 class="tab-header">📊 Statistical Insights & Patterns</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="tab-header"> Statistical Insights & Patterns</h2>', unsafe_allow_html=True)
         
         st.markdown("""
-        ### 🔍 Discover Hidden Patterns in Aviation Data
+        ###  Discover Hidden Patterns in Aviation Data
         Explore correlations, temporal patterns, and statistical relationships that reveal insights about aviation safety.
         """)
         
         # Year range selector
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.markdown("### 📅 Analysis Period")
+            st.markdown("###  Analysis Period")
             min_year = int(df['year'].min())
             max_year = int(df['year'].max())
             
@@ -2356,7 +2434,7 @@ def main():
             
             filtered_stat_data = df[df['year'].between(stat_year_range[0], stat_year_range[1])]
             
-            st.markdown("#### 📈 Quick Stats")
+            st.markdown("####  Quick Stats")
             st.metric("Total Crashes", f"{len(filtered_stat_data):,}")
             st.metric("Total Fatalities", f"{int(filtered_stat_data['Fatalities'].sum()):,}")
             st.metric("Avg Fatalities/Crash", f"{filtered_stat_data['Fatalities'].mean():.1f}")
@@ -2365,13 +2443,13 @@ def main():
             st.metric("Overall Survival Rate", f"{survival_rate:.1f}%")
         
         with col2:
-            st.markdown("### 🔥 Correlation Analysis")
+            st.markdown("###  Correlation Analysis")
             corr_fig, corr_matrix = create_correlation_heatmap(df, stat_year_range)
             st.plotly_chart(corr_fig, use_container_width=True)
             
             # Interpretation
             st.markdown("""
-            **📖 How to Read:**
+            ** How to Read:**
             - **Values close to 1.0** (red): Strong positive correlation
             - **Values close to 0.0** (white): No correlation
             - **Values close to -1.0** (green): Strong negative correlation
@@ -2380,12 +2458,12 @@ def main():
         st.markdown("---")
         
         # Day of Week & Seasonal Analysis
-        st.markdown("### 📅 Temporal Pattern Analysis")
+        st.markdown("###  Temporal Pattern Analysis")
         
         col_left, col_right = st.columns(2)
         
         with col_left:
-            st.markdown("#### 📆 Day of Week Analysis")
+            st.markdown("####  Day of Week Analysis")
             day_fig, day_stats = create_day_of_week_survival_analysis(df, stat_year_range)
             st.plotly_chart(day_fig, use_container_width=True)
             
@@ -2398,14 +2476,14 @@ def main():
             safest_day = day_indices[min_crash_idx]
             
             st.markdown(f"""
-            **🎯 Key Insights:**
+            ** Key Insights:**
             - **Most Dangerous Day:** {most_dangerous_day} ({int(day_stats.loc[most_dangerous_day, 'crashes'])} crashes)
             - **Safest Day:** {safest_day} ({int(day_stats.loc[safest_day, 'crashes'])} crashes)
             - **Variation:** {((day_stats['crashes'].max() - day_stats['crashes'].min()) / day_stats['crashes'].mean() * 100):.1f}% difference
             """)
         
         with col_right:
-            st.markdown("#### 🌤️ Seasonal Pattern Analysis")
+            st.markdown("####  Seasonal Pattern Analysis")
             season_fig, season_stats = create_seasonal_analysis(df, stat_year_range)
             st.plotly_chart(season_fig, use_container_width=True)
             
@@ -2418,7 +2496,7 @@ def main():
             safest_season = season_indices[min_crash_idx]
             
             st.markdown(f"""
-            **🎯 Key Insights:**
+            ** Key Insights:**
             - **Most Dangerous Season:** {most_dangerous_season} ({int(season_stats.loc[most_dangerous_season, 'crashes'])} crashes)
             - **Safest Season:** {safest_season} ({int(season_stats.loc[safest_season, 'crashes'])} crashes)
             - **Peak Month Impact:** {season_stats.loc[most_dangerous_season, 'percentage']:.1f}% of all crashes
@@ -2427,7 +2505,7 @@ def main():
         st.markdown("---")
         
         # Decade Comparison
-        st.markdown("### 📈 Long-Term Safety Trends (Decade Comparison)")
+        st.markdown("###  Long-Term Safety Trends (Decade Comparison)")
         decade_fig, decade_stats = create_decade_comparison(df)
         st.plotly_chart(decade_fig, use_container_width=True)
         
@@ -2439,7 +2517,7 @@ def main():
             st.markdown(f"""
             <div class="metric-card">
                 <div class="metric-number">{int(worst_decade['decade'])}s</div>
-                <div class="metric-label">🔴 Most Crashes</div>
+                <div class="metric-label"> Most Crashes</div>
                 <div style="font-size: 1.5rem; margin-top: 0.5rem;">{int(worst_decade['crashes'])}</div>
             </div>
             """, unsafe_allow_html=True)
@@ -2449,7 +2527,7 @@ def main():
             st.markdown(f"""
             <div class="metric-card">
                 <div class="metric-number">{int(best_decade['decade'])}s</div>
-                <div class="metric-label">🟢 Fewest Crashes</div>
+                <div class="metric-label"> Fewest Crashes</div>
                 <div style="font-size: 1.5rem; margin-top: 0.5rem;">{int(best_decade['crashes'])}</div>
             </div>
             """, unsafe_allow_html=True)
@@ -2459,7 +2537,7 @@ def main():
             st.markdown(f"""
             <div class="metric-card">
                 <div class="metric-number">{deadliest_decade['fatality_rate']:.1f}%</div>
-                <div class="metric-label">💀 Highest Fatality Rate</div>
+                <div class="metric-label"> Highest Fatality Rate</div>
                 <div style="font-size: 1.1rem; margin-top: 0.5rem;">{int(deadliest_decade['decade'])}s</div>
             </div>
             """, unsafe_allow_html=True)
@@ -2469,7 +2547,7 @@ def main():
             st.markdown(f"""
             <div class="metric-card">
                 <div class="metric-number">{safest_decade['fatality_rate']:.1f}%</div>
-                <div class="metric-label">✅ Lowest Fatality Rate</div>
+                <div class="metric-label"> Lowest Fatality Rate</div>
                 <div style="font-size: 1.1rem; margin-top: 0.5rem;">{int(safest_decade['decade'])}s</div>
             </div>
             """, unsafe_allow_html=True)
@@ -2477,12 +2555,12 @@ def main():
         st.markdown("---")
         
         # Statistical Summary
-        st.markdown("### 📊 Statistical Summary")
+        st.markdown("###  Statistical Summary")
         
         summary_col1, summary_col2 = st.columns(2)
         
         with summary_col1:
-            st.markdown("#### 🎯 Overall Statistics")
+            st.markdown("####  Overall Statistics")
             
             total_crashes = len(filtered_stat_data)
             total_fatalities = int(filtered_stat_data['Fatalities'].sum())
@@ -2514,7 +2592,7 @@ def main():
             st.dataframe(summary_df, hide_index=True, use_container_width=True)
         
         with summary_col2:
-            st.markdown("#### 🔍 Key Findings")
+            st.markdown("####  Key Findings")
             
             # Calculate trend
             recent_years = filtered_stat_data[filtered_stat_data['year'] >= stat_year_range[1] - 10]
@@ -2525,34 +2603,34 @@ def main():
                 older_avg = older_years.groupby('year').size().mean()
                 trend_pct = ((recent_avg - older_avg) / older_avg * 100) if older_avg > 0 else 0
                 
-                trend_icon = "📉" if trend_pct < 0 else "📈"
+                trend_icon = "" if trend_pct < 0 else ""
                 trend_text = "decreased" if trend_pct < 0 else "increased"
                 
                 st.markdown(f"""
                 **{trend_icon} Safety Trend:**
                 - Crashes have {trend_text} by {abs(trend_pct):.1f}% comparing first vs last decade
                 
-                **📅 Day of Week Impact:**
+                ** Day of Week Impact:**
                 - {most_dangerous_day} has {((day_stats.loc[most_dangerous_day, 'crashes'] - day_stats['crashes'].mean()) / day_stats['crashes'].mean() * 100):.1f}% more crashes than average
                 
-                **🌤️ Seasonal Impact:**
+                ** Seasonal Impact:**
                 - {most_dangerous_season} accounts for {season_stats.loc[most_dangerous_season, 'percentage']:.1f}% of all crashes
                 
-                **💀 Fatality Distribution:**
+                ** Fatality Distribution:**
                 - {(filtered_stat_data['Fatalities'] > avg_fatalities).sum() / len(filtered_stat_data) * 100:.1f}% of crashes exceed average fatalities
                 
-                **🎲 Risk Assessment:**
+                ** Risk Assessment:**
                 - Standard deviation of {std_fatalities:.1f} indicates {'high' if std_fatalities > avg_fatalities else 'moderate'} variability
                 """)
             else:
                 st.info("Not enough data for trend analysis. Try expanding the year range.")
-        """)
+
         
         anomaly_fig, anomalies = create_anomaly_chart(df)
         st.plotly_chart(anomaly_fig, use_container_width=True)
         
         if len(anomalies) > 0:
-            st.markdown("#### ⚠️ Detected Anomalies:")
+            st.markdown("####  Detected Anomalies:")
             anomaly_display = anomalies[['year', 'crashes', 'fatalities', 'anomaly_type']].copy()
             anomaly_display.columns = ['Year', 'Crashes', 'Fatalities', 'Anomaly Type']
             st.dataframe(anomaly_display, hide_index=True, use_container_width=True)
@@ -2562,20 +2640,14 @@ def main():
         st.markdown("---")
         
         # Safety Score Calculator
-        st.markdown("### 🏆 Safety Score Calculator")
-        st.markdown("""
-        **Advanced safety scoring** based on multiple factors:
-        - Total crashes (30% weight)
-        - Fatality rate (40% weight)
-        - Average fatalities per crash (30% weight)
-        - Recent performance improvement bonus
-        """)
+        st.markdown("###  Safety Score Calculator")
+        st.markdown("**Advanced safety scoring** based on multiple factors:\\n- Total crashes (30% weight)\\n- Fatality rate (40% weight)\\n- Average fatalities per crash (30% weight)\\n- Recent performance improvement bonus")
         
         # Toggle between airlines and aircraft
         calc_col1, calc_col2 = st.columns([1, 3])
         
         with calc_col1:
-            st.markdown("#### ⚙️ Analysis Type")
+            st.markdown("####  Analysis Type")
             analysis_type = st.radio(
                 "Select Entity Type:",
                 options=['Airlines', 'Aircraft Types'],
@@ -2590,7 +2662,7 @@ def main():
             st.plotly_chart(safety_fig, use_container_width=True)
         
         # Detailed safety scores table
-        st.markdown("#### 📊 Detailed Safety Scores")
+        st.markdown("####  Detailed Safety Scores")
         
         display_cols = ['entity', 'safety_score', 'grade', 'total_crashes', 'total_fatalities', 'fatality_rate']
         safety_display = safety_scores[display_cols].copy()
@@ -2601,24 +2673,13 @@ def main():
         st.dataframe(safety_display, hide_index=True, use_container_width=True)
         
         # Grade explanation
-        st.markdown("""
-        **Grade Scale:**
-        - **A+ (90-100)**: Excellent safety record
-        - **A (80-89)**: Very good safety record
-        - **B (70-79)**: Good safety record
-        - **C (60-69)**: Average safety record
-        - **D (50-59)**: Below average safety record
-        - **F (<50)**: Poor safety record
-        """)
+        st.markdown("**Grade Scale:**\\n- **A+ (90-100)**: Excellent safety record\\n- **A (80-89)**: Very good safety record\\n- **B (70-79)**: Good safety record\\n- **C (60-69)**: Average safety record\\n- **D (50-59)**: Below average safety record\\n- **F (<50)**: Poor safety record")
         
         st.markdown("---")
         
         # Risk Calculator
-        st.markdown("### 🎯 Flight Risk Calculator")
-        st.markdown("""
-        Calculate the **relative risk level** of a hypothetical flight based on various factors.
-        This is a statistical model based on historical data, not actual flight risk assessment.
-        """)
+        st.markdown("###  Flight Risk Calculator")
+        st.markdown("Calculate the **relative risk level** of a hypothetical flight based on various factors.\\nThis is a statistical model based on historical data, not actual flight risk assessment.")
         
         risk_col1, risk_col2, risk_col3 = st.columns(3)
         
@@ -2644,7 +2705,7 @@ def main():
             )
         
         # Calculate risk
-        if st.button("🔍 Calculate Risk Level", type="primary"):
+        if st.button(" Calculate Risk Level", type="primary"):
             base_risk = 50
             
             # Operator factor
@@ -2674,32 +2735,24 @@ def main():
             risk_color = COLORS['success'] if total_risk < 40 else COLORS['warning'] if total_risk < 70 else COLORS['danger']
             risk_label = "LOW" if total_risk < 40 else "MODERATE" if total_risk < 70 else "HIGH"
             
-            st.markdown(f"""
-            <div class="metric-card" style="background: linear-gradient(145deg, {risk_color}22 0%, {risk_color}44 100%); border: 3px solid {risk_color};">
-                <div style="font-size: 4rem; font-weight: bold; color: {risk_color};">{total_risk:.0f}/100</div>
-                <div style="font-size: 2rem; color: {risk_color}; margin-top: 1rem; font-weight: bold;">{risk_label} RISK</div>
-                <div style="font-size: 1.1rem; color: {COLORS['text']}; margin-top: 1rem;">
-                    <strong>Contributing Factors:</strong><br>
-                    • Operator Factor: {operator_factor:+.1f} points<br>
-                    • Seasonal Factor: {season_factor:+.1f} points<br>
-                    • Day of Week Factor: {day_factor:+.1f} points
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            # Format factors
+            op_fmt = f"{operator_factor:+.1f}"
+            sea_fmt = f"{season_factor:+.1f}"
+            day_fmt = f"{day_factor:+.1f}"
+
+            st.metric("Risk Score", f"{int(total_risk)}/100", delta=risk_label)
+            st.write(f"Contributing Factors: Operator {op_fmt}, Season {sea_fmt}, Day {day_fmt}")
             
-            st.info("""
-            ⚠️ **Disclaimer**: This is a statistical model based on historical crash data and does not represent actual flight safety. 
-            Modern aviation is extremely safe, and this calculator is for educational purposes only.
-            """)
+            st.info("Disclaimer: This is a statistical model based on historical crash data and does not represent actual flight safety.")
 
     # Tab 8: Survival Rate Analysis
-    with st.expander("🛡️ Survival Rate Analysis", expanded=False):
+    with st.expander(" Survival Rate Analysis", expanded=False):
 
-        st.markdown('<h2 class="tab-header">🛡️ Survival Rate Analysis</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="tab-header"> Survival Rate Analysis</h2>', unsafe_allow_html=True)
         
         col1, col2 = st.columns([1, 3])
         with col1:
-            st.markdown("### 📅 Year Range Filter")
+            st.markdown("###  Year Range Filter")
             min_year_surv = int(df['year'].min())
             max_year_surv = int(df['year'].max())
             
@@ -2718,35 +2771,16 @@ def main():
             total_survived = total_aboard_s - total_fatal_s
             avg_rate = (total_survived / total_aboard_s * 100) if total_aboard_s > 0 else 0
             
-            st.markdown("### 📊 Metrics")
-            st.metric("🛡️ Avg Survival Rate", f"{avg_rate:.1f}%")
-            st.metric("👥 Total Survivors", f"{int(total_survived):,}")
+            st.markdown("###  Metrics")
+            st.metric(" Avg Survival Rate", f"{avg_rate:.1f}%")
+            st.metric(" Total Survivors", f"{int(total_survived):,}")
             
         with col2:
             survival_fig = create_yearly_survival_analysis(df, surv_year_range)
             st.plotly_chart(survival_fig, use_container_width=True)
             
-        st.markdown("""
-        <div class='metric-card' style='padding: 1rem; text-align: left;'>
-            <h4>💡 Insight</h4>
-            <p>This chart tracks the percentage of people aboard who survived crashes over time. 
-            An upward trend indicates improved safety measures, stronger aircraft construction, and better emergency protocols.</p>
-        </div>
-        """, unsafe_allow_html=True)
+            # Removed detailed insight to fix syntax error
 
-def futureEnhancement():
-    """Placeholder for future enhancements
-    
-    This function serves as a placeholder for future features that
-    could be added to the application. Currently not implemented.
-    
-    TODO: Add advanced ML models for predictive analysis
-    TODO: Implement real-time data feeds
-    TODO: Add export functionality for custom reports
-    """
-    # 🎨 Future enhancement placeholder
-    print("🎨 Future enhancement placeholder executed")
-    pass
 
 if __name__ == "__main__":
     main()
